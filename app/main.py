@@ -22,13 +22,16 @@ overview = st.Page("screens/overview.py", title="Overview", icon=":material/moni
                    default=True)
 alerts = st.Page("screens/alerts.py", title="Alerts", icon=":material/notifications:")
 explorer = st.Page("screens/log_explorer.py", title="Log explorer", icon=":material/table:")
+investigator = st.Page("screens/investigator.py", title="Investigator",
+                       icon=":material/manage_search:")
 DASHBOARD = (overview, alerts, explorer)
 
-page = st.navigation(list(DASHBOARD))
+page = st.navigation([*DASHBOARD, investigator])
 if st.session_state.pop(shared.KEY_GOTO_EXPLORER, False):
     st.switch_page(explorer)  # set by "Open in Log explorer" on the Alerts screen
 if page in DASHBOARD:
     # The shared filters live here, outside the screens, so they keep their values when the
-    # analyst switches screens. The Investigator (Phase 5) will not show them.
+    # analyst switches screens. The Investigator does not show them: the agent picks its own
+    # time windows, and a filter beside it would contradict its answers.
     shared.sidebar_filters()
 page.run()

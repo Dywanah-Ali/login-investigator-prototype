@@ -381,3 +381,103 @@ picture, and keep the exposed versions out of git history.
 checked `01-first-prompt.png`, which it had not opened before: clean. The Phase 4 commit was amended,
 so the exposed images are in no commit that can be pushed.
 **Next:** Phase 5 in a fresh session.
+
+### P-024 · 2026-10-09 · Phase 5 Agent
+
+**Prompt:**
+> Phase 4 review is done. You can start phase 5
+
+**Purpose:** start Phase 5, the investigator agent, in a fresh session.
+**Result:** Claude read the Phase 4 handoff notes, the agent and security sections of the PRD, the
+Investigator design and the core code. It also read how the class notebook builds an agent and uses
+structured output, so the plan stays within what was taught. It proposed the Phase 5 plan and
+stopped for the author's approval.
+**Next:** the author approves or changes the plan.
+
+### P-025 · 2026-10-09 · Phase 5 Agent
+
+**Prompt:**
+> The plan aligns with the PRD and meet the requiremnts. one consideration though. the agent output text in the chat should be stream() for a better user experience as the app is end-user phacing. the screenshot of this prompt is saved. rename it as usual
+
+**Purpose:** approve the Phase 5 plan, with one change: stream the agent's answers into the chat.
+**Result:** Claude renamed the screenshot to `08-phase5-plan.png` after checking it showed no personal
+details. It added streaming to the PRD's agent requirements and its decisions log. One security
+point came with it: Streamlit's built-in streaming renders markdown, which would undo the
+links-and-images-off rule, so the stream is written as plain text instead.
+Claude then built Phase 5 in the planned order: the IP lookup, the three tools, the case list,
+the agent and the report chain, then the Investigator screen. Five live runs outside the app
+found three agent problems (B-009 to B-011). In the live app, the core scenario ran end to end,
+including a restart and reopening the case. That run found B-012 (fixed) and B-013 (moved to
+the evals). 211 tests pass.
+**Next:** the author runs the core scenario in the app and takes the Investigator 📸.
+
+### P-026 · 2026-10-09 · Phase 5 Agent
+
+**Prompt:**
+> i see that big error when i click investigator:
+
+(Followed by the pasted `ImportError` traceback.)
+
+**Purpose:** report an error on the Investigator page.
+**Result:** Claude found that the code on disk was correct, and that an app process on port 8517
+had been running since before Phase 5. It reproduced the error on that process in the browser,
+restarted the process on the same port, and confirmed that the page loads. Logged as B-014.
+**Next:** the author runs the core scenario and takes the Investigator 📸.
+
+### P-027 · 2026-10-09 · Phase 5 Agent
+
+**Prompt:**
+> unfortunatily i refreshed the page the error page nolonger exist. so i can not take a screenshot of it. do u still have it in ur memory ?
+
+(Followed by "#1 and it is saved. rename it".)
+
+**Purpose:** find a way to document bug B-014 after the error page was gone.
+**Result:** Claude said it had no image, only the error text, because it had read the page as text.
+It offered two options: a screenshot of the author's chat message with the traceback, or a staged
+reproduction labelled as such. The author chose the real chat message. Claude viewed it and renamed
+it `09-bug-b014-stale-app.png`. It noted that the traceback shows the home folder path, which
+contains the author's first name.
+**Next:** the author asked to blur the paths. Claude blurred the home folder part on all five path
+lines, checked the image by eye (the first try left one letter visible, so the boxes were widened),
+and kept the original outside the repo. The image was never committed. Then the Investigator 📸.
+
+### P-028 · 2026-10-09 · Phase 5 Agent
+
+**Prompt:**
+> the tools' calls displays internal app code
+
+(Sent with a screenshot of the open "3 tool calls" panel showing raw JSON.)
+
+**Purpose:** the tool panel looked like code to an end user.
+**Result:** Claude explained that the panel shows the data the agent read, not app code, and
+offered three layouts with previews. The author chose "summary plus table". Claude added
+`login_investigator/tool_views.py`, which turns each call into a plain "Asked" and "Found" line
+plus a table of log rows, with the raw JSON behind a switch. While trying it on real tool output,
+it found and fixed B-015. Checked in the browser on a real case. 223 tests pass.
+**Next:** the author restarts the app and continues the core scenario.
+
+### P-029 · 2026-10-09 · Phase 5 Agent
+
+**Prompt:**
+> another UI error when i run a investigation:
+
+(Followed by the pasted `AttributeError` traceback.)
+
+**Purpose:** report a second error on the Investigator page.
+**Result:** Claude compared the app's start time with the file change times, then read
+Streamlit's file watcher source. It found the real cause of both B-014 and this error:
+Streamlit never reloads modules outside `app/`. Logged as B-016. The fix is a restart.
+**Next:** the author restarts the app and continues the core scenario.
+
+### P-030 · 2026-10-09 · Phase 5 Agent
+
+**Prompt:**
+> all done. new screenshots saved, rename them appropriatly pls
+
+**Purpose:** record the author's own run of the core scenario.
+**Result:** Claude viewed all six screenshots and renamed them `10-` to `15-`. The B-016 traceback
+showed the home folder path again, so Claude blurred it as the author ruled for `09-`, and kept
+the original outside the repo. The follow-up answer in `14-` repeats the miscount from B-013:
+"three successful sign-ins after the initial one", where there were two. PROGRESS.md: the
+Investigator step is ticked and Phase 5 is done.
+**Next:** the author decides whether to commit Phase 5; then Phase 6, the evals.

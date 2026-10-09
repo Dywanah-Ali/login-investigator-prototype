@@ -66,7 +66,7 @@ filtered: the agent chooses its own time windows.
 | Sidebar | Replaces the filters: a "New investigation" button and the list of past investigations (first question and start time); clicking one reopens it |
 | Starter questions | Shown in an empty case, such as "Anything suspicious last night?"; one click asks it |
 | Chat | The analyst's questions and the agent's answers |
-| Tools used | Under each answer, a collapsible list of the tools called, with their inputs and results |
+| Tools used | Under each answer, a collapsible list of the tools called. Each call shows a plain "Asked" line and a "Found" line written by code from the tool's result, its log rows in a table, and the raw JSON behind a "Show raw data" switch (author's choice, 9 Oct: the raw JSON alone read like code to an end user) |
 | Incident report | A **button plus chat** (author's choice, 9 Oct): the button sends "Write the incident report" into the chat. The report is shown as a card with the fixed fields: title, severity, summary, attacker IPs, affected users, timeline, evidence, next steps |
 
 - **Security:** the agent's text and the report card are displayed with links and images switched

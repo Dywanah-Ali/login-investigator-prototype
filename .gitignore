@@ -3,7 +3,8 @@
 .env.*
 !env.example
 
-# Agent memory: holds conversations
+# Agent memory: holds conversations. The folder also holds SQLite's -wal and -shm side files.
+memory/
 *.sqlite
 *.sqlite3
 *.db

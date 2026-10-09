@@ -161,6 +161,7 @@ The dashboard screens and two of the agent's tools call the same core functions.
 - Memory uses `SqliteSaver` with one thread per investigation. Investigations survive an app restart and can be reopened.
 - The agent is created once per browser session, so Streamlit's reruns never reset it.
 - When a tool fails, the agent receives a short, clean error message and says so to the analyst.
+- The agent's answer streams into the chat as it is written, still as plain text, and the analyst sees which tool is running while they wait.
 - Asked to take an action, the agent explains that it is read-only and recommends the step instead.
 
 ## Security and privacy requirements
@@ -328,3 +329,4 @@ Thirteen decisions were made in planning on 9 October 2026; two questions remain
 | 2026-10-09 | Global filters apply to the three dashboard screens, not the Investigator | A filter set to one day beside an agent answering about "last night" would contradict it on screen |
 | 2026-10-09 | Past investigations live inside the Investigator screen | Not worth a screen of its own, and it is the first item cut if time runs short |
 | 2026-10-09 | The agent's output and the report are shown with links and images off; log fields only inside tables | Injected instructions can make a model write an image link to an attacker's server, which the browser fetches by itself. The S5 rows are planted to tempt exactly that |
+| 2026-10-09 | The agent's answers stream into the chat (author's request, Phase 5) | The app faces end users, and a long silent wait for a multi-tool answer feels broken. The stream is written as plain text, not with Streamlit's markdown streaming, so it keeps the links-and-images-off rule |

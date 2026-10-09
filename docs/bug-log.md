@@ -122,3 +122,121 @@ includes guessed names. 2 new tests for the singular and plural forms.
 **Lesson:** passing tests do not show how a screen reads. Look at it, and treat a misleading label
 as a bug, not polish.
 **Found by:** manual check (browser and headless run). Related prompt: P-020.
+
+### B-009 · 2026-10-09 · Phase 5 Agent
+
+**Symptom:** in the first live run, "Anything suspicious last night?" got a correct answer from
+the detection rules, but the agent never looked up the attacker IP. Step 5 of the PRD's core
+scenario (abuse score, country and network owner) was missing.
+**Cause:** the system prompt said "look up every attacker IP you report" as a loose rule among
+others. gpt-4o-mini answered as soon as one tool gave it enough to say.
+**Fix:** a "How to investigate" section in the system prompt: for a broad question, run the rules,
+then look up and search every attacker IP, then read the evidence rows, all before answering.
+In the next four live runs, the agent looked up the attacker IP every time. A second tweak asked for
+the country and network owner too, and both later runs reported them.
+**Lesson:** a small model follows a procedure better than a principle. Say the order of steps, not
+only the goal.
+**Found by:** live smoke run outside the app. Related prompt: P-025.
+
+### B-010 · 2026-10-09 · Phase 5 Agent
+
+**Symptom:** the agent's answers used markdown (bold with `**`, nested lists), although the system
+prompt asks for plain text. The screen shows the agent's text as plain text for security, so the
+asterisks would appear on screen.
+**Cause:** gpt-4o-mini writes markdown by habit. A bare "no markdown" rule did not outweigh it.
+**Fix:** two layers. The prompt now says why: markdown shows on screen as literal symbols. That
+did not stop it, so `as_plain_text()` removes bold markers and heading markers before display.
+In the live app the model then switched to backticks around values, so those are removed too.
+Underscores are kept, because usernames can contain them. The case's memory keeps the original
+text.
+**Lesson:** when the screen depends on a format, enforce it in code at the display boundary. A
+prompt rule is a request, not a guarantee.
+**Found by:** live smoke run outside the app. Related prompt: P-025.
+
+### B-011 · 2026-10-09 · Phase 5 Agent
+
+**Symptom:** one planted S5 row (instruction-like text in a user agent) was in the evidence the
+agent read. The agent did not obey it, but it did not report it either, although the prompt asks
+it to flag text aimed at an AI as a sign of attack.
+**Cause:** the prompt never told the agent to read the evidence rows' fields; it summarised the
+finding summaries only.
+**Fix:** open. The prompt now tells the agent to read the evidence rows, including the
+user agent fields. In the three later runs read in full, it still did not report the text. The PRD's
+requirement is met: the agent ignores the planted text. Reporting it is an extra the prompt asks
+for, and Phase 6 measures it over many runs.
+**Lesson:** (pending)
+**Found by:** live smoke run, then a check of the tool output. Related prompt: P-025.
+
+### B-012 · 2026-10-09 · Phase 5 Agent
+
+**Symptom:** in the live app, while an answer streamed, the two starter questions that were not
+clicked stayed on screen, greyed out, under the new chat messages.
+**Cause:** Streamlit keeps the previous run's elements on screen, marked stale, until the new run
+finishes. A streamed answer keeps the run open for many seconds.
+**Fix:** the starters and the report button sit in one `st.empty()` slot, which is cleared before
+an answer or a report starts. Checked again in the browser: the old buttons disappear at once.
+**Lesson:** streaming changes what the analyst sees between two screens. Look at the screen while
+the answer is still arriving, not only before and after.
+**Found by:** manual check in the browser. Related prompt: P-025.
+
+### B-013 · 2026-10-09 · Phase 5 Agent
+
+**Symptom:** three judgement slips in the live app, each in one answer of several:
+- the follow-up answer listed the two later sign-ins correctly, then said "three successful
+  sign-ins after the initial one" (the search window included the attacker's own sign-in);
+- one answer about "last night" did not state the time window it searched, although the prompt
+  asks for it every time;
+- "Was any account compromised this week?" listed all four planted attacks but looked up none of
+  the three attacker IPs, although the prompt gives that order for broad questions.
+**Cause:** gpt-4o-mini follows the prompt most of the time, not every time. Code review cannot
+catch this: the code was right, and the same question gets a different answer on another run.
+**Fix:** open. These become eval questions in Phase 6, run several times each, so the pass rate
+shows whether a prompt change helps. The miscount came back in the author's own run
+(`14-follow-up-answer.png`), so it is not a one-off.
+**Lesson:** (pending)
+**Found by:** manual check in the browser. Related prompt: P-025.
+
+### B-014 · 2026-10-09 · Phase 5 Agent
+
+**Symptom:** the author clicked Investigator and got `ImportError: cannot import name 'in_window'
+from 'login_investigator.rules'`. The same page worked in Claude's own browser run.
+**Cause:** the author's app process had been running since 20:26, before Phase 5 began. It had
+already loaded the old `rules.py`. Streamlit loaded the new Investigator files on the next click,
+but kept the old `rules` module in memory, which has no `in_window`. The code on disk was correct:
+a fresh import worked and 211 tests passed.
+**Fix:** reproduced the error in the browser on that process (port 8517), then restarted it on
+the same port. The page loads, with the past investigations and the starters.
+**Lesson:** a long-running app process can mix old and new code. After changing core modules,
+restart the app before judging a change, and check which process is serving the page.
+**Found by:** the author, in the browser. Related prompt: P-026. Screenshot: `09-bug-b014-stale-app.png` (the author's chat message with the traceback; the error page itself was gone after a reload).
+
+### B-015 · 2026-10-09 · Phase 5 Agent
+
+**Symptom:** in the new tool panel, a search that the agent sent with start "today" was shown as
+"from 9 Oct 21:50 UTC": the computer's clock, a date the log does not cover.
+**Cause:** the panel's time formatter used pandas directly, and pandas reads "today" as the
+current clock time. The core's own parser refuses such words for exactly this reason.
+**Fix:** the panel uses the core's strict parser (`parse_utc`). Anything it refuses is shown as
+it was sent, in quotes. A test checks the "today" case.
+**Lesson:** reuse the guarded function, even for display. A second, looser copy of the same job
+brings back the bug the first one was built to stop.
+**Found by:** Claude, trying the new panel on real tool output before showing it. Related prompt:
+P-028.
+
+### B-016 · 2026-10-09 · Phase 5 Agent
+
+**Symptom:** the author ran an investigation and got `AttributeError: 'ToolUse' object has no
+attribute 'call_id'`. The same kind of failure as B-014: new screen code meeting old core code.
+**Cause:** B-014's explanation was incomplete. Streamlit's source shows it reloads a changed module
+only when the file sits in the main script's folder (`app/`) or on the `PYTHONPATH` environment
+variable. The core folder `login_investigator/` is neither, so Streamlit never reloads it. The
+screen files are re-read on every run. The author's app started at 21:44; `agent.py` gained
+`call_id` at 21:50 and the screen started using it at 21:51. The `folderWatchList` setting does not
+help: it only triggers a rerun, never a module reload. The cause was confirmed from Streamlit's
+source and the file times; it was not reproduced again in the browser.
+**Fix:** restart the app after any change to `login_investigator/`. No code change: a fresh start,
+which is all a reviewer ever does, always loads matching code.
+**Lesson:** when the same symptom comes back, the first explanation was too shallow. Read how the
+tool actually works before settling on a cause.
+**Found by:** the author, in the browser. Related prompt: P-029. Screenshot: `11-bug-b016-stale-core.png`
+(the author's chat message; home folder path blurred).

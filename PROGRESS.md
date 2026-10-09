@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
 **Current phase:** 4 — Dashboard
-**Current step:** Phase 4 done; the author reviews it. Phase 5 (agent) starts in a fresh session: read the handoff notes at the end of Phase 4
+**Current step:** Phase 5 committed (local, not pushed). Phase 6 (evals) next: start in a fresh session if the author prefers
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -93,17 +93,20 @@ Bugs B-006 to B-008 found and fixed. The author asked to start Phase 5 in a fres
 
 ## Phase 5 — Agent
 
-- [ ] 📸 Process: the prompt that starts this phase, and Claude's plan
-- [ ] System prompt template with today's date and the data-only rule
-- [ ] Tool: `find_suspicious_activity`
-- [ ] Tool: `search_logins`
-- [ ] Tool: `lookup_ip_reputation`, with saved responses
-- [ ] Agent with `create_agent`, gpt-4o-mini through OpenRouter
-- [ ] `SqliteSaver` memory, one thread per investigation, agent created once per session
-- [ ] Structured incident report
-- [ ] Investigator screen with chat and the list of past investigations 📸
+- [x] ~~📸 Process: the prompt that starts this phase, and Claude's plan~~ (`screenshots/08-phase5-plan.png`; shows the plan's first part and the author's streaming request)
+- [x] ~~System prompt template with today's date and the data-only rule~~ (`login_investigator/agent.py`; `tests/test_agent.py`)
+- [x] ~~Tool: `find_suspicious_activity`~~ (`login_investigator/tools.py`; `tests/test_tools.py`)
+- [x] ~~Tool: `search_logins`~~ (`tests/test_tools.py`)
+- [x] ~~Tool: `lookup_ip_reputation`, with saved responses~~ (`login_investigator/reputation.py`; `tests/test_reputation.py`; one live lookup of 1.1.1.1 worked, nothing written to disk)
+- [x] ~~Agent with `create_agent`, gpt-4o-mini through OpenRouter~~ (five live runs of the core scenario outside the app; bugs B-009 to B-011)
+- [x] ~~`SqliteSaver` memory, one thread per investigation, agent created once per session~~ (`login_investigator/investigations.py`; restart test in `tests/test_agent.py`; once-per-session test in `tests/test_investigator_screen.py`)
+- [x] ~~Structured incident report~~ (separate chain with structured output; saved into the case; `tests/test_agent.py`)
+- [x] ~~Investigator screen with chat and the list of past investigations 📸~~ (`app/screens/investigator.py`; `tests/test_investigator_screen.py`; `screenshots/12-` to `15-`)
 
-**Gate 2:** the core scenario from the PRD runs end to end in the live app.
+**Gate 2:** the core scenario from the PRD runs end to end in the live app. ✅ **Passed 9 Oct, Claude's browser run:** all
+8 steps, including an app restart and reopening the case; the block request was refused with
+specific recommendations. The author's own run followed the same day (screenshots 12 to 15).
+Judgement slips seen on the way are in B-013, for the Phase 6 evals.
 
 ## Phase 6 — Evals
 

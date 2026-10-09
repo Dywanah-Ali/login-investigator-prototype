@@ -254,11 +254,18 @@ def detect_all(df: pd.DataFrame, start=None, end=None) -> list[Finding]:
     """Run every rule on the whole log, then keep findings that overlap [start, end)."""
     start, end = parse_window(start, end)
     findings = [f for rule in RULES for f in rule(df)]
+    return in_window(sorted(findings, key=lambda f: (f.first_seen, f.rule)), start, end)
+
+
+def in_window(findings: list[Finding], start=None, end=None) -> list[Finding]:
+    """Keep the findings that overlap [start, end). Lets a caller run the rules once and then
+    ask about many windows, as the agent's tool does."""
+    start, end = parse_window(start, end)
     if start is not None:
         findings = [f for f in findings if f.last_seen >= start]
     if end is not None:
         findings = [f for f in findings if f.first_seen < end]
-    return sorted(findings, key=lambda f: (f.first_seen, f.rule))
+    return findings
 
 
 def findings_matching(findings: list[Finding], rows: pd.DataFrame) -> list[Finding]:
