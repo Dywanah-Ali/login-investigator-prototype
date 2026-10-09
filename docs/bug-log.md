@@ -51,3 +51,35 @@ decoy sign-in to succeed.
 **Lesson:** a test should measure one thing. Remove anything in the test data that could give the
 right answer for the wrong reason.
 **Found by:** test. Related prompt: P-012.
+
+### B-004 · 2026-10-09 · Phase 3 Core logic
+
+**Symptom:** `parse_utc` accepted the words "now" and "today" and turned them into the computer's
+clock. Reproduced: on 9 October, `search_logins(start="today")` returned 0 rows without any error,
+because the log ends on 8 October. It also accepted loose text such as "Oct 8 2026".
+**Cause:** the parser handed any text to `pd.Timestamp`, which understands "now" and "today" and
+many free-form formats. That broke the decision that "today" is the log's capture date: an agent
+asking about "today" would get the real date, find nothing, and report that nothing happened.
+**Fix:** text must be explicit ISO 8601 (`2026-10-08`, `2026-10-08T01:12:07Z`, or with an offset);
+anything else fails with a message naming the accepted forms. Real date and datetime objects, as
+the dashboard will pass, are still accepted. 22 new tests; run against the old parser, 11 of them
+failed, so they catch this bug.
+**Lesson:** a convenient library default can quietly undo a design decision. Accept only the
+input forms the design means, and test the words a user or an agent is likely to type.
+**Found by:** review (the supervisor's review of Phase 3). Related prompt: P-016.
+
+### B-005 · 2026-10-09 · Phase 3 Core logic
+
+**Symptom:** the rules compared usernames exactly, but search ignored case. Reproduced: 30 failed
+sign-ins on one account, alternating "Daniel.Hughes" and "daniel.hughes", produced no brute-force
+finding at all. The reverse also happened: 9 accounts tried in two spellings each counted as 18
+accounts and raised a false spraying alert.
+**Cause:** the rules grouped by the raw username; search lowered it. Nobody had decided which was
+right, so the two halves of the core disagreed about what "one account" means.
+**Fix:** one helper, `account_key`, defines an account as the username without regard to case.
+Every rule and the search use it. The raw usernames stay unchanged in the rows and the evidence.
+5 new tests; run against the old rules, all 5 failed.
+**Lesson:** when two functions answer the same question, give them one shared definition. A
+detection rule that treats spelling variants as different things can be evaded by changing case.
+**Found by:** review (the supervisor asked for consistent matching; reproducing it showed the
+evasion). Related prompt: P-016.

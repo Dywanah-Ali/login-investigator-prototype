@@ -1,7 +1,9 @@
 """The loader accepts the real log unchanged and refuses any broken file loudly."""
 
 import csv
+from datetime import date, datetime
 
+import pandas as pd
 import pytest
 
 from login_investigator import generator
@@ -9,6 +11,7 @@ from login_investigator.loader import (
     MAX_REPORTED_PROBLEMS,
     LogValidationError,
     load_log,
+    parse_utc,
 )
 
 
@@ -149,3 +152,37 @@ def test_many_problems_are_summarised(tmp_path, real_rows):
     assert "25 problem(s)" in message
     assert message.count("\n- line") == MAX_REPORTED_PROBLEMS
     assert f"and {25 - MAX_REPORTED_PROBLEMS} more" in message
+
+
+# --- Query times: "today" is the log's capture date, never the computer's clock (B-004) ---
+
+
+@pytest.mark.parametrize("word", ["now", "today", "yesterday", "tomorrow", "NOW", " today "])
+def test_relative_words_are_refused(word):
+    with pytest.raises(ValueError, match="not an explicit date or time"):
+        parse_utc(word, "start")
+
+
+@pytest.mark.parametrize("value", ["Oct 8 2026", "8/10/2026", "1759900000", "", "last night"])
+def test_loose_formats_are_refused(value):
+    with pytest.raises(ValueError, match="not an explicit date or time"):
+        parse_utc(value, "start")
+
+
+@pytest.mark.parametrize("value", [1759900000, None, 3.5])
+def test_non_dates_are_refused(value):
+    with pytest.raises(ValueError, match="is not a date and time"):
+        parse_utc(value, "start")
+
+
+@pytest.mark.parametrize("value, expected", [
+    ("2026-10-08", "2026-10-08T00:00:00Z"),
+    ("2026-10-08T01:12:07Z", "2026-10-08T01:12:07Z"),
+    ("2026-10-08T01:12", "2026-10-08T01:12:00Z"),
+    ("2026-10-08 04:12:07+03:00", "2026-10-08T01:12:07Z"),
+    (date(2026, 10, 8), "2026-10-08T00:00:00Z"),
+    (datetime(2026, 10, 8, 1, 12, 7), "2026-10-08T01:12:07Z"),
+    (pd.Timestamp("2026-10-08T01:12:07Z"), "2026-10-08T01:12:07Z"),
+])
+def test_explicit_dates_are_accepted_as_utc(value, expected):
+    assert parse_utc(value, "start") == pd.Timestamp(expected)

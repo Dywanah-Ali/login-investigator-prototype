@@ -12,30 +12,33 @@ from datetime import timedelta
 import numpy as np
 import pandas as pd
 
-from login_investigator.loader import TIMESTAMP_FORMAT, parse_window, to_records
+from login_investigator.loader import TIMESTAMP_FORMAT, account_key, parse_window, to_records
 
 # --- Thresholds. Each comment is the reason, written to be quoted. ---
+# These are assumptions tuned to this synthetic dataset, not general facts about attackers. A real
+# deployment would set them from its own baseline of normal activity.
 
-# Attacks are measured over one hour: long enough to catch a slow tool, short enough that a busy
-# office's ordinary typos never add up.
+# We assume an hour is long enough to catch an automated tool and short enough that, in this
+# dataset, a busy office's ordinary typos never add up.
 ATTACK_WINDOW = timedelta(minutes=60)
 
-# Staff mistype a password at most 4 times in a whole day; 20 failures on one account within an
-# hour is a machine guessing, not a person.
+# In this dataset, staff mistype a password at most 4 times in a day, so we assume 20 failures on
+# one account within an hour is automated guessing.
 BRUTE_FORCE_MIN_FAILURES = 20
 
-# The busiest office address sees at most 3 people mistype within an hour; 10 accounts failing from
-# one address within an hour is a list being worked through.
+# In this dataset, the busiest office address sees at most 3 people mistype within an hour, so we
+# assume 10 accounts failing from one address within an hour is a list being worked through.
 SPRAYING_MIN_ACCOUNTS = 10
 
-# A person who mistypes succeeds after 1 or 2 tries; a success after 10 or more failures from the
-# same address within the hour before means the password was guessed.
+# In this dataset, staff who mistype succeed after 1 or 2 tries, so we assume a success after 10 or
+# more failures from the same address in the hour before means the password was guessed.
 SUCCESS_AFTER_MIN_FAILURES = 10
 
-# Without a few normal sign-ins there is no "usual" country to compare against.
+# We assume 5 earlier sign-ins are enough to establish a user's usual country; with fewer, the rule
+# does not judge.
 NEW_COUNTRY_MIN_HISTORY = 5
 
-# Flagged activity with a pause longer than this is reported as two separate findings.
+# We assume flagged activity separated by a pause longer than 30 minutes is two separate incidents.
 INCIDENT_GAP = timedelta(minutes=30)
 
 # A finding carries at most this many evidence rows; the counts always cover every event.
@@ -123,7 +126,9 @@ def _flagged_runs(rows: pd.DataFrame, qualifies) -> list[pd.DataFrame]:
 def brute_force(df: pd.DataFrame) -> list[Finding]:
     """Many failed passwords on one account from one IP within an hour."""
     findings = []
-    for (ip, user), rows in _failures(df).groupby(["source_ip", "username"], sort=True):
+    failures = _failures(df)
+    keys = [failures["source_ip"], account_key(failures["username"])]
+    for (ip, user), rows in failures.groupby(keys, sort=True):
         runs = _flagged_runs(rows, lambda w: len(w) >= BRUTE_FORCE_MIN_FAILURES)
         for run in runs:
             findings.append(_finding(
@@ -139,12 +144,12 @@ def password_spraying(df: pd.DataFrame) -> list[Finding]:
     findings = []
     for ip, rows in _failures(df).groupby("source_ip", sort=True):
         runs = _flagged_runs(
-            rows, lambda w: w["username"].nunique() >= SPRAYING_MIN_ACCOUNTS
+            rows, lambda w: account_key(w["username"]).nunique() >= SPRAYING_MIN_ACCOUNTS
         )
         for run in runs:
             findings.append(_finding(
                 PASSWORD_SPRAYING,
-                f"{ip} failed on {run['username'].nunique()} accounts "
+                f"{ip} failed on {account_key(run['username']).nunique()} accounts "
                 f"in {len(run)} attempts",
                 run,
             ))
@@ -155,7 +160,8 @@ def success_after_failures(df: pd.DataFrame) -> list[Finding]:
     """A successful sign-in from the same IP and account soon after many failures."""
     findings = []
     ordered = df.sort_values("timestamp_utc", kind="stable")
-    for (ip, user), rows in ordered.groupby(["source_ip", "username"], sort=True):
+    keys = [ordered["source_ip"], account_key(ordered["username"])]
+    for (ip, user), rows in ordered.groupby(keys, sort=True):
         failures = rows[rows["outcome"] == "failure"]
         for index in rows.index[rows["outcome"] == "success"]:
             moment = rows.at[index, "timestamp_utc"]
@@ -175,7 +181,7 @@ def new_country(df: pd.DataFrame) -> list[Finding]:
     """A successful sign-in from a country the user has never signed in from before."""
     findings = []
     successes = df[df["outcome"] == "success"].sort_values("timestamp_utc", kind="stable")
-    for user, rows in successes.groupby("username", sort=True):
+    for user, rows in successes.groupby(account_key(successes["username"]), sort=True):
         seen: dict[str, int] = {}
         history = 0
         for position in range(len(rows)):

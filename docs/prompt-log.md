@@ -247,3 +247,34 @@ tests passed on the first run. To prove the tests can fail, the thresholds were 
 throwaway run: 14 rule tests failed, including the decoy, normal-user and staff-address checks.
 Timing: load 0.3 s, all rules 1.5 s, one search under 0.01 s.
 **Next:** Gate 1 passed; the author reviews before Phase 4.
+
+The author asked for a review brief for the supervisor ("i will make the supervisor review phase 3.
+give me a summary for phase 3 so he starts his review"). Claude's first brief was too long; the
+author pushed back ("claude this is not a summary. this is too much. i need what is just enough for
+him to start the review."), and Claude cut it to status, files, result, how to verify, and three
+points to look at.
+
+### P-016 · 2026-10-09 · Phase 3 Core logic
+
+**Prompt:**
+> Supervisor review of Phase 3 is in. Commit Phase 3 as it stands first, then fix these as a separate commit:
+>
+> 1. Bug: parse_utc accepts "now" and "today" and turns them into the computer's clock. That breaks the decision that "today" is the log's capture date. Reject any value that is not an explicit date or date-time, with a clear message. Add tests for "now", "today" and "yesterday". Log this in the bug log; the supervisor review found it.
+> 2. Reword the threshold reasons in rules.py as assumptions about this dataset, not facts about the world.
+> 3. Make username matching consistent between search and the rules, or document why they differ.
+> 4. Add a "Known limitations" section to the README: slow attacks below the thresholds, attacks spread across many IPs, and users with fewer than five sign-ins never get a new-country check.
+>
+> Show me the test output when done. Then stop.
+
+**Purpose:** act on the supervisor's review of Phase 3.
+**Result:** Phase 3 committed first as `b087364`. Then, with each bug reproduced before it was fixed:
+1. B-004: `search_logins(start="today")` silently returned 0 rows on 9 October. Query times now
+   must be explicit ISO 8601; 22 new tests, 11 of which fail on the old parser.
+2. Threshold reasons reworded as assumptions about this dataset.
+3. Made consistent rather than documented: reproducing showed case-sensitive rules could be evaded
+   (30 failures, alternating case, raised nothing) and could raise a false spraying alert (B-005).
+   One shared `account_key` now defines an account for the rules and search; 5 new tests, all of
+   which fail on the old rules.
+4. README "Known limitations" section added.
+The real log still gives exactly the same five findings. 99 tests pass.
+**Next:** commit the fixes separately; the author reviews.

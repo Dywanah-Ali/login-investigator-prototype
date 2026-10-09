@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
 **Current phase:** 3 — Core logic
-**Current step:** Gate 1 passed; the author reviews it before Phase 4 (⏸️ UI design pause applies)
+**Current step:** Gate 1 passed and supervisor fixes done; the author decides on Phase 4 (⏸️ UI design pause applies)
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -57,7 +57,9 @@ Name each file with a number and a short label, for example `01-first-prompt.png
 - [x] ~~Search and filter function~~ (`login_investigator/search.py`; 13 tests)
 - [x] ~~Unit tests: each rule catches its planted scenario~~ (26 rule tests, both directions; loosened thresholds make 14 of them fail)
 
-**Gate 1:** the tests prove the rules catch S1 to S4. ✅ **Passed 9 Oct: 72 tests pass.** Waiting for the author's review before Phase 4.
+**Gate 1:** the tests prove the rules catch S1 to S4. ✅ **Passed 9 Oct: 72 tests pass.** Supervisor review done the same day: four fixes
+(bugs B-004 and B-005, threshold wording, README limitations); 99 tests pass. Waiting for the
+author before Phase 4.
 
 ## Phase 4 — Dashboard
 

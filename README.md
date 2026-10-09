@@ -73,6 +73,19 @@ address plays.
 The exact answers (addresses, users, times, counts) are written to `evals/ground_truth.json` for the
 evals. The agent's tools never read that file.
 
+## Known limitations
+
+The detection rules are deliberately simple, and their thresholds are assumptions tuned to this
+synthetic dataset (see the comments at the top of `login_investigator/rules.py`). They miss:
+
+- **Slow attacks below the thresholds.** Fewer than 20 failures on one account within an hour, or
+  fewer than 10 accounts from one address within an hour, are never flagged, however long the
+  attack goes on.
+- **Attacks spread across many IP addresses.** Every rule except the new-country rule counts per
+  address, so an attacker who rotates through many addresses can stay under each threshold.
+- **Users with fewer than five sign-ins.** The new-country rule needs five earlier successful
+  sign-ins to know a user's usual country, so new or rarely seen users never get a new-country check.
+
 ## How the agent is evaluated
 
 _To be written._

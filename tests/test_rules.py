@@ -235,5 +235,47 @@ def test_window_on_s4_day_still_sees_the_user_history(log, s):
 def test_bad_window_is_refused(log):
     with pytest.raises(ValueError, match="must be before"):
         rules.detect_all(log, start="2026-10-08", end="2026-10-07")
-    with pytest.raises(ValueError, match="is not a date"):
+    with pytest.raises(ValueError, match="not an explicit date"):
         rules.detect_all(log, start="last night")
+
+
+# --- Usernames are one account regardless of case, in the rules and in search (B-005) ---
+
+
+def alternating_case(n, ip="1.2.3.4", outcome="failure"):
+    return [(i, "Daniel.Hughes" if i % 2 else "daniel.hughes", ip, outcome) for i in range(n)]
+
+
+def test_brute_force_cannot_be_split_by_changing_case(make_log):
+    found = rules.brute_force(make_log(alternating_case(30)))
+    assert len(found) == 1
+    assert found[0].failure_count == 30
+    assert set(found[0].users) == {"Daniel.Hughes", "daniel.hughes"}  # raw values kept
+
+
+def test_spraying_counts_case_variants_as_one_account(make_log):
+    accounts = SPRAYING_MIN_ACCOUNTS - 1
+    events = [(i, f"user{i}", "1.2.3.4", "failure") for i in range(accounts)]
+    events += [(30 + i, f"USER{i}", "1.2.3.4", "failure") for i in range(accounts)]
+    assert rules.password_spraying(make_log(events)) == []
+
+
+def test_success_after_failures_across_case_variants(make_log):
+    events = alternating_case(SUCCESS_AFTER_MIN_FAILURES)
+    events.append((SUCCESS_AFTER_MIN_FAILURES, "DANIEL.HUGHES", "1.2.3.4", "success"))
+    assert len(rules.success_after_failures(make_log(events))) == 1
+
+
+def test_new_country_history_spans_case_variants(make_log):
+    home = [(i * 60, "u1" if i % 2 else "U1", "1.2.3.4", "success", "GB")
+            for i in range(NEW_COUNTRY_MIN_HISTORY)]
+    abroad = [(600, "u1", "5.6.7.8", "success", "RU")]
+    assert len(rules.new_country(make_log(home + abroad))) == 1
+
+
+def test_rules_and_search_agree_on_the_account(make_log):
+    from login_investigator.search import search_logins
+
+    log = make_log(alternating_case(30))
+    [finding] = rules.brute_force(log)
+    assert search_logins(log, user="DANIEL.HUGHES").total == finding.event_count

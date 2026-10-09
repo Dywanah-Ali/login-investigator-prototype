@@ -9,6 +9,7 @@ import pandas as pd
 from login_investigator.loader import (
     ALLOWED_OUTCOMES,
     TIMESTAMP_FORMAT,
+    account_key,
     parse_window,
     to_records,
 )
@@ -53,14 +54,15 @@ class SearchResult:
 def filter_logins(df, user=None, ip=None, start=None, end=None, outcome=None, country=None):
     """Return the matching rows. Every filter is optional; together they all must match.
 
-    Users and countries match without regard to case. The window is [start, end) in UTC.
+    Users match without regard to case, as in the rules (see `account_key`); countries do too.
+    IPs match exactly. The window is [start, end) in UTC.
     """
     if outcome is not None and outcome not in ALLOWED_OUTCOMES:
         raise ValueError(f"outcome {outcome!r} is not one of {', '.join(ALLOWED_OUTCOMES)}")
     start, end = parse_window(start, end)
     mask = pd.Series(True, index=df.index)
     if user is not None:
-        mask &= df["username"].str.lower() == str(user).strip().lower()
+        mask &= account_key(df["username"]) == str(user).strip().lower()
     if ip is not None:
         mask &= df["source_ip"] == str(ip).strip()
     if country is not None:

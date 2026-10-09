@@ -84,7 +84,8 @@ def test_sample_cap(log):
 @pytest.mark.parametrize("kwargs, message", [
     ({"outcome": "sucess"}, "is not one of"),
     ({"start": "2026-10-08", "end": "2026-10-07"}, "must be before"),
-    ({"start": "yesterday"}, "is not a date"),
+    ({"start": "yesterday"}, "not an explicit date"),
+    ({"end": "now"}, "not an explicit date"),
 ])
 def test_bad_input_raises_a_clear_error(log, kwargs, message):
     with pytest.raises(ValueError, match=message):

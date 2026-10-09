@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import ipaddress
 import re
+from datetime import date, datetime
 from pathlib import Path
 
 import pandas as pd
@@ -20,6 +21,10 @@ ALLOWED_FAILURE_REASONS = ("bad_password", "unknown_user")
 TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 TIMESTAMP_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 COUNTRY_PATTERN = re.compile(r"^[A-Z]{2}$")
+# A query time: a date, optionally with a time and a zone (Z or +03:00).
+EXPLICIT_TIME_PATTERN = re.compile(
+    r"^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?)?$"
+)
 MAX_REPORTED_PROBLEMS = 10
 
 
@@ -102,7 +107,21 @@ def _find_problems(df: pd.DataFrame, timestamps: pd.Series) -> list[str]:
 
 
 def parse_utc(value, name: str) -> pd.Timestamp:
-    """Read a date or date-time. A time without a zone is taken as UTC, like the whole log."""
+    """Read an explicit date or date-time. A time without a zone is taken as UTC, like the log.
+
+    Words like "now" or "today" are refused: they would read the computer's clock, but "today"
+    for this app is the log's capture date. Text must be ISO 8601, such as 2026-10-08 or
+    2026-10-08T01:12:07Z. Date and datetime objects (from the dashboard) are accepted.
+    """
+    if isinstance(value, str):
+        if not EXPLICIT_TIME_PATTERN.match(value.strip()):
+            raise ValueError(
+                f"{name} {value!r} is not an explicit date or time. Use ISO 8601, such as "
+                f"2026-10-08 or 2026-10-08T01:12:07Z; words like 'today' are not accepted"
+            )
+        value = value.strip()
+    elif not isinstance(value, (datetime, date)):
+        raise ValueError(f"{name} {value!r} is not a date and time")
     try:
         moment = pd.Timestamp(value)
     except (ValueError, TypeError):
@@ -119,6 +138,13 @@ def parse_window(start, end) -> tuple[pd.Timestamp | None, pd.Timestamp | None]:
     if start is not None and end is not None and start >= end:
         raise ValueError(f"start {start} must be before end {end}")
     return start, end
+
+
+def account_key(usernames: pd.Series) -> pd.Series:
+    """The account a username refers to. Usernames are compared without regard to case
+    everywhere (rules and search), so "Daniel.Hughes" and "daniel.hughes" are one account and an
+    attacker cannot split a count by changing case. The raw values stay unchanged in the rows."""
+    return usernames.str.lower()
 
 
 def to_records(rows: pd.DataFrame) -> list[dict]:
