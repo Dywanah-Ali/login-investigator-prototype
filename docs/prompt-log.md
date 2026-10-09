@@ -198,3 +198,52 @@ strategy, scenarios), and a longer `docs/data-generation.md` for the Google Doc 
 decisions and iterations: why synthetic, the capture date, reserved addresses and decoys, attacker
 selection, scenarios, tests, the two test failures and known limitations.
 **Next:** commit the Phase 2 work.
+
+### P-014 · 2026-10-09 · Phase 3 Core logic
+
+**Prompt:**
+> Go for Phase 3, core logic. Start by showing me your plan, then wait for my go before writing code.
+>
+> What Phase 3 must deliver:
+>
+> 1. Load and validate the CSV. Check the columns, types, UTC timestamps and allowed outcome values. If anything is wrong, fail loudly with a clear message. Never drop or fix rows silently.
+>
+> 2. The four detection rules: brute force, password spraying, success after repeated failures, and sign-in from a new country.
+>    - Put each threshold in a named constant, with a one-line reason I can quote in the Google Doc.
+>    - Every rule returns findings in one shared shape: rule name, IPs, users, counts, first seen, last seen, and the evidence rows. The Alerts screen and the agent's find_suspicious_activity tool will both use this shape later.
+>
+> 3. One search and filter function: user, IP, time window, outcome and country. It returns counts plus a capped sample of rows. The dashboard filters and the search_logins tool will both call it later.
+>
+> Rules for this phase:
+> - All of this is plain Python inside login_investigator/, with no Streamlit import.
+> - Keep every log field as raw data. The S5 rows contain instruction-like text on purpose. They must still count toward the S1 brute force.
+> - Tests read the expected answers from evals/ground_truth.json. Do not copy the answers into the tests.
+> - Also test the other direction: normal users and the three decoy IPs must not be flagged. A rule that flags everything would pass the first kind of test and still be useless.
+>
+> Gate 1: when all tests pass, show me the test output as evidence and stop. Do not start Phase 4.
+>
+> As usual: log this prompt, update PROGRESS.md as steps finish, log any bug when you find it, and remind me when to take a screenshot.
+
+**Purpose:** start Phase 3 with a plan first; set the requirements and the Gate 1 stop.
+**Result:** Claude presented the plan and waited for approval: loader, shared finding shape, four
+rules with quotable thresholds, search function, and tests in both directions. The rules run on the
+whole log before filtering by time, because the new-country rule needs each user's history. The
+compromise in S3 also counts as a new-country sign-in, so two new-country findings are expected.
+**Next:** the author approved ("no all good.. it is that one. i took the screenshot, pls rename it
+apropriatly then go").
+
+### P-015 · 2026-10-09 · Phase 3 Core logic
+
+**Prompt:**
+> no all good.. it is that one. i took the screenshot, pls rename it apropriatly then go
+
+**Purpose:** approve the Phase 3 plan and start building.
+**Result:** `loader.py`, `rules.py` and `search.py`, with no Streamlit import, plus 61 new tests
+(72 in total). The rules found exactly five findings on the real log: S1 brute force, S2 spraying,
+S3 success after failures, and two new-country sign-ins (S4, and the S3 compromise from the
+Netherlands). Before the first run, a read-through caught two problems: timezone-aware times would
+have become slow generic objects in the window check, and one row-joining line was fragile. All 72
+tests passed on the first run. To prove the tests can fail, the thresholds were loosened in a
+throwaway run: 14 rule tests failed, including the decoy, normal-user and staff-address checks.
+Timing: load 0.3 s, all rules 1.5 s, one search under 0.01 s.
+**Next:** Gate 1 passed; the author reviews before Phase 4.
