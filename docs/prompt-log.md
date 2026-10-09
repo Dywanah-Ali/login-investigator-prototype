@@ -278,3 +278,55 @@ points to look at.
 4. README "Known limitations" section added.
 The real log still gives exactly the same five findings. 99 tests pass.
 **Next:** commit the fixes separately; the author reviews.
+
+### P-017 · 2026-10-09 · Phase 4 Dashboard (UI design pause)
+
+**Prompt:**
+> based on what we have on the backend, and the requirements of the app to deliver. what is ur opinion on 4 screens only ?
+
+(Preceded by "pls check if some UI design decisions/approach is considered in the PRD": Claude
+listed what the PRD settles, such as tools, filters, labels and acceptance rules, and what it leaves
+open: final screens, layout, charts and style.)
+
+**Purpose:** start the UI design pause by testing the four proposed screens against the backend
+and the requirements.
+**Result:** Claude recommended keeping four, because each answers one analyst question and maps
+to one backend function, and together they cover the dashboard, raw logs and threat intelligence
+from the problem statement. Two adjustments: global filters only on the three dashboard screens,
+since a filter beside the agent's "last night" answer would contradict it; and past investigations
+inside the Investigator. Optional: an "Investigate" button on each alert. The author agreed
+("agreed"); the PRD and the decisions log were updated.
+**Next:** design what each screen shows, starting with the Overview.
+
+### P-018 · 2026-10-09 · Phase 4 Dashboard (UI design pause)
+
+**Prompts:** four short design rulings, in order:
+> bars
+
+> i agree with ur recommendation
+
+> keep it
+
+> A button plus chat
+
+**Purpose:** agree what each screen shows, one screen at a time, before any UI code.
+**Result:** Claude proposed each screen with its purpose and one open choice; the author ruled:
+stacked bars for the Overview's hourly chart; Alerts listed newest first; a CSV download on the Log
+explorer; the incident report requested by a button plus chat. Recorded in `docs/ui-design.md`.
+Two security rules came out of the design: log fields appear only inside tables, and the agent's
+text and report are shown with links and images off, closing the prompt-injection route where a
+model writes an image link that the browser fetches by itself. The second was added to the PRD's
+security requirements and decisions log.
+**Next:** plan the dashboard build and wait for the author's go.
+
+### P-019 · 2026-10-09 · Phase 4 Dashboard
+
+**Prompt:**
+> Go show the build plan for the three dashbaords screens. do not start the code, wait for my approval
+
+**Purpose:** see the build plan for Overview, Alerts and Log explorer before any UI code.
+**Result:** Claude presented the plan and waited for approval: screens only display, all numbers come
+from tested core functions; Streamlit code in `app/`; three small core additions (findings remember
+their rows, threshold reasons as data, `stats.py`); cached data; automated screen tests for the PRD's
+dashboard acceptance criteria; then a browser check and a screenshot per screen.
+**Next:** the author approved ("screenshot has been taken, rename it. then Go").

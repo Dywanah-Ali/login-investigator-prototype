@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
-**Current phase:** 3 — Core logic
-**Current step:** Gate 1 passed and supervisor fixes done; the author decides on Phase 4 (⏸️ UI design pause applies)
+**Current phase:** 4 — Dashboard
+**Current step:** Plan the dashboard build (Overview, Alerts, Log explorer) and wait for the author's go
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -39,7 +39,7 @@ Name each file with a number and a short label, for example `01-first-prompt.png
 
 ## Phase 2 — Data ✅
 
-- [ ] 📸 Process: the prompt that starts this phase, and Claude's plan
+- [x] ~~📸 Process: the prompt that starts this phase, and Claude's plan~~ (`screenshots/02-data-writeup-prompt.png`; shows the data write-up prompt, which ended the phase, not the one that started it; the author's ruling)
 - [x] ~~Decide the benign IP strategy (open question in the PRD)~~ (reserved documentation ranges plus three real decoys; PRD Data section and decisions log)
 - [x] ~~Choose publicly reported attacker IPs and the three decoy IPs, and save their AbuseIPDB responses~~ (six files in `data/ip_reputation/`; roles in prompt log P-009)
 - [x] ~~Seeded data generator: about 50 users, seven days~~ (`login_investigator/generator.py`; 50 users, 1,856 rows; two runs byte-identical)
@@ -48,7 +48,7 @@ Name each file with a number and a short label, for example `01-first-prompt.png
 
 ## Phase 3 — Core logic
 
-- [ ] 📸 Process: the prompt that starts this phase, and Claude's plan
+- [x] ~~📸 Process: the prompt that starts this phase, and Claude's plan~~ (`screenshots/03-phase3-prompt.png`; shows the prompt, not the plan)
 - [x] ~~Load and validate the CSV~~ (`login_investigator/loader.py`; 23 tests)
 - [x] ~~Rule: brute force~~ (`login_investigator/rules.py`)
 - [x] ~~Rule: password spraying~~
@@ -63,9 +63,9 @@ author before Phase 4.
 
 ## Phase 4 — Dashboard
 
-- [ ] 📸 Process: the prompt that starts this phase, and Claude's plan
-- [ ] ⏸️ **Pause before any UI design.** Think the screens through with the author first; no UI code until they agree (the author's instruction, 9 Oct)
-- [ ] Decide the final screens (open question in the PRD)
+- [x] ~~📸 Process: the prompt that starts this phase, and Claude's plan~~ (`screenshots/04-phase4-plan.png`)
+- [x] ~~⏸️ **Pause before any UI design.** Think the screens through with the author first; no UI code until they agree (the author's instruction, 9 Oct)~~ (all four screens agreed: `docs/ui-design.md`)
+- [x] ~~Decide the final screens (open question in the PRD)~~ (four screens; filters on the three dashboard screens only; past investigations inside the Investigator. PRD decisions log)
 - [ ] Overview screen 📸
 - [ ] Alerts screen 📸
 - [ ] Log explorer screen 📸

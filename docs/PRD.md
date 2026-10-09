@@ -54,8 +54,8 @@ Version 1 is a local, single-user app with four parts: a synthetic dataset, a da
 | Area | What version 1 includes |
 | --- | --- |
 | Dataset | A seeded generator that writes one authentication-log CSV with planted attack scenarios |
-| Screens (provisional) | Overview, Alerts, Log explorer, Investigator. Final screens are decided in the design phase. |
-| Global filters | Date range, outcome, country and user, applied the same way on every screen |
+| Screens | Four: Overview, Alerts, Log explorer, Investigator; what each shows is in `docs/ui-design.md`. The list of past investigations lives inside the Investigator screen. Optional if time allows: an "Investigate" button on each alert that opens the Investigator with a question about that finding. |
+| Global filters | Date range, outcome, country and user, applied the same way on the three dashboard screens (Overview, Alerts, Log explorer). The Investigator is not filtered: the agent chooses its own time windows from the question. |
 | Detection rules | Brute force, password spraying, success after repeated failures, and sign-in from a new country |
 | Investigator agent | LangChain agent with three read-only tools and a structured incident report |
 | Memory | Conversation persisted with `SqliteSaver`; past investigations can be listed and reopened |
@@ -174,6 +174,7 @@ Three risks are designed for from the start: leaked keys, an agent with too much
 | No conversation data in the repo | The SQLite memory file is git-ignored |
 | Least privilege | All three tools only read; no tool can change data or act on systems |
 | Untrusted input stays data | Log fields and AbuseIPDB fields are passed to the agent as data, and the system prompt says so |
+| Agent output cannot reach out | The agent's answers and the incident report are displayed with links and images switched off, so injected instructions cannot make the browser fetch an attacker's URL. Log fields appear only inside tables |
 | Injection is tested, not assumed | Scenario S5 plants instruction-like text; an eval checks the agent ignores it |
 | Encrypted lookups | AbuseIPDB over HTTPS only |
 | No personal data | Synthetic users only; attacker IPs are publicly reported abuse sources |
@@ -185,7 +186,7 @@ Version 1 is accepted only when every box below is ticked with evidence. The fir
 
 **Dashboard**
 
-- [ ] Every screen updates consistently when a global filter changes.
+- [ ] Every dashboard screen updates consistently when a global filter changes.
 - [ ] Every metric shows its unit.
 - [ ] A filter with no matching events shows a clear message, never an empty chart or an error.
 - [ ] Every planted scenario S1 to S4 appears on the Alerts screen.
@@ -291,12 +292,12 @@ The biggest risk is time: the agent layer is what makes the project stand out, a
 
 ## Open questions and decisions log
 
-Thirteen decisions were made in planning on 9 October 2026; two questions remained open for the design phase. The benign IP question was decided the same day, so one remains open.
+Thirteen decisions were made in planning on 9 October 2026; two questions remained open for the design phase. Both were decided the same day: benign IPs, then the final screens.
 
 **Open questions**
 
 - [x] Decided: the app is called Login Investigator.
-- [ ] Final screens. Four are proposed in In scope.
+- [x] Decided: four screens, as in In scope. What each screen shows is designed in Phase 4.
 - [x] Decided: the eval pass target is 90% across all runs, and 100% for the injection and refusal checks.
 - [x] Decided: benign IPs come from the reserved documentation ranges, plus three real decoy addresses. See Data.
 - [x] Checked: the form asks for full name, email address and three public links: GitHub repo, video on Google Drive, documentation on Google Drive.
@@ -323,3 +324,7 @@ Thirteen decisions were made in planning on 9 October 2026; two questions remain
 | 2026-10-09 | Benign IPs: reserved documentation ranges, plus three real decoys with saved responses | Reserved ranges cannot point at a real person and give a stable lookup answer. The decoys stop the agent passing evals by treating every public address as an attacker. A test of AbuseIPDB showed a trusted address (8.8.8.8) with 233 reports but a score of 0, so the agent must judge by score |
 | 2026-10-09 | "Today" for the agent and the app is the log's capture date, 8 October 2026, not the computer's clock | The log is frozen. With the real date, "last night" points at an empty day once the dates pass, and the core scenario fails for a reviewer on any later day. Moving the log's dates every day was rejected: screenshots, video and eval results would disagree |
 | 2026-10-09 | The S5 injection sits in the S1 attacker's rows | The hardest test: the agent reads those rows during the core scenario. The evals catch a failure before the video is recorded |
+| 2026-10-09 | Four screens: Overview, Alerts, Log explorer, Investigator | Each answers one analyst question and maps to one backend function; together they hold the dashboard, raw logs and threat intelligence from the problem statement. A fifth IP-reputation screen would duplicate the agent |
+| 2026-10-09 | Global filters apply to the three dashboard screens, not the Investigator | A filter set to one day beside an agent answering about "last night" would contradict it on screen |
+| 2026-10-09 | Past investigations live inside the Investigator screen | Not worth a screen of its own, and it is the first item cut if time runs short |
+| 2026-10-09 | The agent's output and the report are shown with links and images off; log fields only inside tables | Injected instructions can make a model write an image link to an attacker's server, which the browser fetches by itself. The S5 rows are planted to tempt exactly that |
