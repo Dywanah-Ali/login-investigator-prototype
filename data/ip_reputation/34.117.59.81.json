@@ -1,0 +1,21 @@
+{
+  "data": {
+    "ipAddress": "34.117.59.81",
+    "isPublic": true,
+    "ipVersion": 4,
+    "isWhitelisted": false,
+    "abuseConfidenceScore": 20,
+    "countryCode": "US",
+    "usageType": "Content Delivery Network",
+    "isp": "Google LLC",
+    "domain": "google.com",
+    "hostnames": [
+      "81.59.117.34.bc.googleusercontent.com"
+    ],
+    "isTor": false,
+    "totalReports": 33,
+    "numDistinctUsers": 8,
+    "lastReportedAt": "2026-10-02T17:48:16+00:00"
+  },
+  "fetchedAt": "2026-10-09T15:41:49+00:00"
+}

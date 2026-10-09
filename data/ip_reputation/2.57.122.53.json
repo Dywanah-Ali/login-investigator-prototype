@@ -1,0 +1,19 @@
+{
+  "data": {
+    "ipAddress": "2.57.122.53",
+    "isPublic": true,
+    "ipVersion": 4,
+    "isWhitelisted": false,
+    "abuseConfidenceScore": 100,
+    "countryCode": "RO",
+    "usageType": "Data Center/Web Hosting/Transit",
+    "isp": "TECHOFF SRV LIMITED",
+    "domain": "dmzhost.co",
+    "hostnames": [],
+    "isTor": false,
+    "totalReports": 46451,
+    "numDistinctUsers": 1623,
+    "lastReportedAt": "2026-10-09T15:41:15+00:00"
+  },
+  "fetchedAt": "2026-10-09T15:41:33+00:00"
+}

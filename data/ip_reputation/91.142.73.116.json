@@ -1,0 +1,21 @@
+{
+  "data": {
+    "ipAddress": "91.142.73.116",
+    "isPublic": true,
+    "ipVersion": 4,
+    "isWhitelisted": false,
+    "abuseConfidenceScore": 100,
+    "countryCode": "RU",
+    "usageType": "Data Center/Web Hosting/Transit",
+    "isp": "Hosting technology LTD",
+    "domain": "vdsina.ru",
+    "hostnames": [
+      "host-91-142-73-116.hosted-by-vdsina.ru"
+    ],
+    "isTor": false,
+    "totalReports": 344,
+    "numDistinctUsers": 40,
+    "lastReportedAt": "2026-10-09T15:16:56+00:00"
+  },
+  "fetchedAt": "2026-10-09T15:41:34+00:00"
+}

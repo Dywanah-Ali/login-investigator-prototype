@@ -77,3 +77,124 @@ Observation: the report count alone is misleading. A well-known safe address sti
 hundreds of reports, and AbuseIPDB scores it 0 because it is whitelisted. The agent and the rules
 should judge an IP by `abuseConfidenceScore`, not by `totalReports`.
 **Next:** the author creates the private GitHub repo.
+
+### P-005 · 2026-10-09 · Phase 1 Setup
+
+**Prompt:**
+> done the repo name is "login-investigator-prototype". pls give it a brief discription in github
+
+**Purpose:** record the new private repo and give it a description.
+**Result:** Claude confirmed the repo is private and set the description with the GitHub CLI.
+Claude flagged that the public link will contain the author's GitHub username, which no file
+cleanup can remove, and that commits carry the author's git name.
+**Next:** the author's ruling on the commit name.
+
+### P-006 · 2026-10-09 · Phase 1 Setup
+
+**Prompt:**
+> keep [author]
+
+**Purpose:** keep the existing git author name; go ahead with the noreply email and the first commit.
+**Result:** this repo's git email set to the GitHub noreply address, name kept. Before committing,
+Claude checked that no `.env`, memory or key-like content was staged. First commit `e223abd`,
+not pushed.
+**Next:** Phase 2, Data.
+
+### P-007 · 2026-10-09 · Phase 2 Data
+
+**Prompt:**
+> go ahead
+
+**Purpose:** start Phase 2 with its first decision: which IP addresses the normal users get.
+**Result:** Claude read the PRD Data, Agent, Evaluation and Risks sections and confirmed that Python
+treats the reserved documentation ranges as "not public". It offered three options and recommended
+reserved addresses for normal users plus one real decoy address. The author stopped the question
+and asked for a plain-English explanation ("pls explai ur recommendation for this one in plain
+english, and the reason behind it").
+**Next:** the author challenged the design (P-008).
+
+### P-008 · 2026-10-09 · Phase 2 Data
+
+**Prompt:**
+> why only one decoy ?
+
+**Purpose:** challenge the recommendation.
+**Result:** Claude admitted that one decoy was chosen to keep the work small, not for quality: one
+example can pass by luck. It revised the design to three decoys, each catching a different mistake:
+a trusted address with many reports but score 0, a clean public address, and a borderline low score.
+**Next:** the author approved ("go ahead"). Claude recorded the decision in the PRD Data section,
+the Evaluation table and the decisions log.
+**Iteration note:** the author's question improved the eval design. The first recommendation was
+optimised for effort; the revised one for evidence.
+
+### P-009 · 2026-10-09 · Phase 2 Data
+
+**Prompt:**
+> go
+
+**Purpose:** choose the real attacker IPs and the three decoys, and save their AbuseIPDB responses.
+**Result:** Claude pulled 200 addresses from AbuseIPDB's blacklist (all score 100), then checked 20
+candidates (979 of 1,000 daily checks left). It preferred hosting servers for attackers and skipped a
+Chinese fixed-line ISP address, because that is likely a real person's infected machine. Chosen:
+
+| Role | IP | Score | Reports | Network |
+| --- | --- | --- | --- | --- |
+| S1 brute force, S3 compromise | 185.218.86.24 | 100 | 1,778 | NL hosting |
+| S2 password spraying | 2.57.122.53 | 100 | 46,451 | RO hosting |
+| S4 new country | 91.142.73.116 | 100 | 344 | RU hosting |
+| Decoy: trusted, often reported | 8.8.8.8 | 0 | 233, whitelisted | Google DNS |
+| Decoy: clean public | 165.225.38.10 | 0 | 0 | Zscaler corporate proxy, US |
+| Decoy: borderline | 34.117.59.81 | 20 | 33 | Google Cloud, US |
+
+The six responses are saved in `data/ip_reputation/<ip>.json` with a `fetchedAt` time. The files
+hold only AbuseIPDB's data, never the role, so the agent cannot read the gold answer from them.
+**Next:** the seeded data generator.
+
+### P-010 · 2026-10-09 · Phase 2 Data
+
+**Prompt:**
+> ok go 4 it. just one thing claude. when the step to the design the app ui we need to pause to think it through first.
+
+**Purpose:** start the data generator; set a standing pause before any UI design.
+**Result:** the pause was added to PROGRESS.md Phase 4 and to Claude's memory. Claude presented the
+generator plan and two open decisions: which date the agent treats as "today", and where to plant
+the S5 injection. The author asked for a summary ("summaries ur last response pls").
+**Next:** the author's answers (P-011).
+
+### P-011 · 2026-10-09 · Phase 2 Data
+
+**Prompt:**
+> i accept #2. but for #1, remember that we will give the agent "todays date" as part of his system prompt. or this is what i think planned anyways
+
+**Purpose:** accept the S5 placement in the S1 rows; question the date proposal.
+**Result:** Claude confirmed the date still goes into the system prompt; the question was which date.
+With the computer's clock, "last night" points at an empty day once the frozen log's dates pass,
+so the core scenario fails for a reviewer on any later day. Two options: a fixed capture date, or
+shifting the log's dates daily. Claude recommended the fixed date.
+**Next:** the author chose the fixed date (P-012).
+
+### P-012 · 2026-10-09 · Phase 2 Data
+
+**Prompt:**
+> yes go with A
+
+**Purpose:** fix "today" at the log's capture date, then build the generator.
+**Result:** PRD updated (Agent requirements, Data, S5 row, two decisions). Claude wrote
+`login_investigator/generator.py` (seed 20261008, capture time 8 Oct 2026 09:00 UTC) and 11 tests.
+Output: 1,856 rows (1,548 successes, 308 failures), 50 staff, and `evals/ground_truth.json` with the
+planted answers read from the generated rows. Two runs give byte-identical files. Two test failures
+along the way (B-002, B-003). A check showed the shared office address peaks at 3 users failing in
+an hour, against 35 for the spraying attacker.
+**Next:** document how the data was made.
+
+### P-013 · 2026-10-09 · Phase 2 Data
+
+**Prompt:**
+> claude please write up how the data was made, for the README and the Google Doc.
+
+**Purpose:** explain the dataset to two audiences: people cloning the repo, and the course reviewers.
+**Result:** a short "How the data was made" section in `README.md` (commands, organisation, IP
+strategy, scenarios), and a longer `docs/data-generation.md` for the Google Doc that also tells the
+decisions and iterations: why synthetic, the capture date, reserved addresses and decoys, attacker
+selection, scenarios, tests, the two test failures and known limitations.
+**Next:** commit the Phase 2 work.

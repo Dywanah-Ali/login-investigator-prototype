@@ -1,0 +1,19 @@
+{
+  "data": {
+    "ipAddress": "185.218.86.24",
+    "isPublic": true,
+    "ipVersion": 4,
+    "isWhitelisted": false,
+    "abuseConfidenceScore": 100,
+    "countryCode": "NL",
+    "usageType": "Data Center/Web Hosting/Transit",
+    "isp": "TC DATACENTER LIMITED MANAGED IP SPACE",
+    "domain": "tcdatacenter.com",
+    "hostnames": [],
+    "isTor": false,
+    "totalReports": 1778,
+    "numDistinctUsers": 597,
+    "lastReportedAt": "2026-10-09T15:25:22+00:00"
+  },
+  "fetchedAt": "2026-10-09T15:41:33+00:00"
+}

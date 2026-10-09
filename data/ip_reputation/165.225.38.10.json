@@ -1,0 +1,19 @@
+{
+  "data": {
+    "ipAddress": "165.225.38.10",
+    "isPublic": true,
+    "ipVersion": 4,
+    "isWhitelisted": false,
+    "abuseConfidenceScore": 0,
+    "countryCode": "US",
+    "usageType": "Data Center/Web Hosting/Transit",
+    "isp": "Zscaler, Inc.",
+    "domain": "zscaler.com",
+    "hostnames": [],
+    "isTor": false,
+    "totalReports": 0,
+    "numDistinctUsers": 0,
+    "lastReportedAt": null
+  },
+  "fetchedAt": "2026-10-09T15:41:47+00:00"
+}

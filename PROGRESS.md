@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
-**Current phase:** 1 — Setup
-**Current step:** Set this repo's git author email to the GitHub "noreply" address
+**Current phase:** 3 — Core logic
+**Current step:** Commit the Phase 2 work, then load and validate the CSV
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -22,7 +22,7 @@ Name each file with a number and a short label, for example `01-first-prompt.png
 - [x] ~~Answer the five open questions and read the submission form~~
 - [x] ~~Create this project folder, `CLAUDE.md` and this tracker~~
 
-## Phase 1 — Setup
+## Phase 1 — Setup ✅
 
 - [x] ~~📸 Process: the first prompt in VS Code, and Claude's answer (proves the handoff works)~~ (`screenshots/01-first-prompt.png`)
 - [x] ~~👤 Create the AbuseIPDB account and an API key~~
@@ -34,17 +34,17 @@ Name each file with a number and a short label, for example `01-first-prompt.png
 - [x] ~~One test call to gpt-4o-mini through OpenRouter from LangChain~~ (reply "connection works", model `openai/gpt-4o-mini`, 17 tokens)
 - [x] ~~One test lookup against AbuseIPDB~~ (8.8.8.8: status 200, score 0, whitelisted, 999 of 1,000 checks left)
 - [x] ~~👤 Create the GitHub repo, **private** until the final review~~ (`login-investigator-prototype`, private, description set)
-- [ ] Set this repo's git author email to the GitHub "noreply" address, so commits never carry a personal email
-- [ ] First commit 📸
+- [x] ~~Set this repo's git author email to the GitHub "noreply" address, so commits never carry a personal email~~ (author name kept: the author's ruling)
+- [x] ~~First commit 📸~~ (`e223abd`, not pushed)
 
-## Phase 2 — Data
+## Phase 2 — Data ✅
 
 - [ ] 📸 Process: the prompt that starts this phase, and Claude's plan
-- [ ] Decide the benign IP strategy (open question in the PRD)
-- [ ] Choose publicly reported attacker IPs and save their AbuseIPDB responses
-- [ ] Seeded data generator: about 50 users, seven days
-- [ ] Plant scenarios S1 to S5
-- [ ] Generate the CSV and document how it was made 📸
+- [x] ~~Decide the benign IP strategy (open question in the PRD)~~ (reserved documentation ranges plus three real decoys; PRD Data section and decisions log)
+- [x] ~~Choose publicly reported attacker IPs and the three decoy IPs, and save their AbuseIPDB responses~~ (six files in `data/ip_reputation/`; roles in prompt log P-009)
+- [x] ~~Seeded data generator: about 50 users, seven days~~ (`login_investigator/generator.py`; 50 users, 1,856 rows; two runs byte-identical)
+- [x] ~~Plant scenarios S1 to S5~~ (11 tests pass; answers in `evals/ground_truth.json`)
+- [x] ~~Generate the CSV and document how it was made 📸~~ (`data/logins.csv`; README section and `docs/data-generation.md`)
 
 ## Phase 3 — Core logic
 
@@ -62,6 +62,7 @@ Name each file with a number and a short label, for example `01-first-prompt.png
 ## Phase 4 — Dashboard
 
 - [ ] 📸 Process: the prompt that starts this phase, and Claude's plan
+- [ ] ⏸️ **Pause before any UI design.** Think the screens through with the author first; no UI code until they agree (the author's instruction, 9 Oct)
 - [ ] Decide the final screens (open question in the PRD)
 - [ ] Overview screen 📸
 - [ ] Alerts screen 📸
