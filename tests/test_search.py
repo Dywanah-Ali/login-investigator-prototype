@@ -100,3 +100,48 @@ def test_filter_logins_returns_every_matching_row(log, s):
 def test_result_is_json_ready(log, s):
     json.dumps(search_logins(log, ip=s["S1"]["attacker_ip"]).to_dict())
     json.dumps(search_logins(log, user="nobody.here").to_dict())
+
+
+def test_distinct_users_ignores_case_like_the_rules(log):
+    """B-005 made one account case-insensitive everywhere; the user count must agree."""
+    import pandas as pd
+
+    from login_investigator.search import summarize
+
+    head = log.head(3)
+    doubled = pd.concat([head, head.assign(username=head["username"].str.upper())])
+    assert summarize(doubled.sort_values("timestamp_utc")).distinct_users == \
+        head["username"].str.lower().nunique()
+
+
+def test_summarize_matches_search_logins(log, s):
+    from login_investigator.search import summarize
+
+    rows = filter_logins(log, ip=s["S2"]["attacker_ip"])
+    assert summarize(rows) == search_logins(log, ip=s["S2"]["attacker_ip"])
+
+
+def test_export_csv_round_trips_the_rows(log, s):
+    import csv
+    import io
+
+    from login_investigator.search import export_csv
+
+    rows = filter_logins(log, ip=s["S1"]["attacker_ip"])
+    parsed = list(csv.DictReader(io.StringIO(export_csv(rows))))
+    assert len(parsed) == len(rows)
+    assert parsed[-1]["timestamp_utc"] == s["S3"]["time"]
+    assert sum(r["user_agent"] == s["S5"]["text"] for r in parsed) == s["S5"]["rows"]
+
+
+@pytest.mark.parametrize("value", ["=HYPERLINK(\"http://x\")", "+1+1", "-2+3", "@SUM(A1)"])
+def test_export_csv_neutralises_formulas(log, value):
+    import csv
+    import io
+
+    from login_investigator.search import export_csv
+
+    rows = log.head(1).assign(user_agent=value)
+    [parsed] = list(csv.DictReader(io.StringIO(export_csv(rows))))
+    assert parsed["user_agent"] == "'" + value
+    assert parsed["username"] == log.iloc[0]["username"]  # ordinary values untouched

@@ -81,13 +81,18 @@ def search_logins(df, user=None, ip=None, start=None, end=None, outcome=None, co
     """Counts for every matching row, plus a capped sample of the most recent ones."""
     if not 1 <= limit <= MAX_SAMPLE_ROWS:
         raise ValueError(f"limit must be between 1 and {MAX_SAMPLE_ROWS}, got {limit}")
-    rows = filter_logins(df, user, ip, start, end, outcome, country)
+    return summarize(filter_logins(df, user, ip, start, end, outcome, country), limit)
+
+
+def summarize(rows: pd.DataFrame, limit: int = DEFAULT_SAMPLE_ROWS) -> SearchResult:
+    """Counts and a recent sample for rows already filtered, such as by the dashboard filters.
+    `rows` must be in time order, as filter_logins returns them."""
     empty = rows.empty
     return SearchResult(
         total=len(rows),
         successes=int((rows["outcome"] == "success").sum()),
         failures=int((rows["outcome"] == "failure").sum()),
-        distinct_users=rows["username"].nunique(),
+        distinct_users=account_key(rows["username"]).nunique(),
         distinct_ips=rows["source_ip"].nunique(),
         distinct_countries=rows["country"].nunique(),
         first_seen=None if empty else rows["timestamp_utc"].iloc[0],
@@ -95,3 +100,23 @@ def search_logins(df, user=None, ip=None, start=None, end=None, outcome=None, co
         sample=tuple(to_records(rows.tail(limit))),
         truncated=len(rows) > limit,
     )
+
+
+# A spreadsheet runs a cell that starts with one of these as a formula (CSV injection).
+_FORMULA_STARTS = ("=", "+", "-", "@", "\t", "\r")
+
+
+def export_csv(rows: pd.DataFrame) -> str:
+    """The rows as CSV text for download, safe to open in a spreadsheet.
+
+    Log fields are untrusted, so any text value that a spreadsheet would run as a formula gets a
+    leading apostrophe, which spreadsheets show as plain text. Everything else is unchanged.
+    """
+    records = pd.DataFrame(to_records(rows), columns=list(rows.columns))
+
+    def neutralise(value):
+        if isinstance(value, str) and value.startswith(_FORMULA_STARTS):
+            return "'" + value
+        return value
+
+    return records.map(neutralise).to_csv(index=False, lineterminator="\n")

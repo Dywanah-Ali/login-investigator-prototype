@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
 **Current phase:** 4 — Dashboard
-**Current step:** Plan the dashboard build (Overview, Alerts, Log explorer) and wait for the author's go
+**Current step:** Phase 4 done; the author reviews it. Phase 5 (agent) starts in a fresh session: read the handoff notes at the end of Phase 4
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -66,13 +66,30 @@ author before Phase 4.
 - [x] ~~📸 Process: the prompt that starts this phase, and Claude's plan~~ (`screenshots/04-phase4-plan.png`)
 - [x] ~~⏸️ **Pause before any UI design.** Think the screens through with the author first; no UI code until they agree (the author's instruction, 9 Oct)~~ (all four screens agreed: `docs/ui-design.md`)
 - [x] ~~Decide the final screens (open question in the PRD)~~ (four screens; filters on the three dashboard screens only; past investigations inside the Investigator. PRD decisions log)
-- [ ] Overview screen 📸
-- [ ] Alerts screen 📸
-- [ ] Log explorer screen 📸
-- [ ] Global filters behave the same on every screen
-- [ ] Every metric shows its unit
-- [ ] Empty filter results show a clear message
-- [ ] "Synthetic data" label is visible
+- [x] ~~Overview screen 📸~~ (`app/screens/overview.py`; checked in the browser; `screenshots/05-overview.png`)
+- [x] ~~Alerts screen 📸~~ (`app/screens/alerts.py`; checked in the browser; `screenshots/06-alerts.png`)
+- [x] ~~Log explorer screen 📸~~ (`app/screens/log_explorer.py`; checked in the browser; `screenshots/07-log-explorer.png`)
+- [x] ~~Global filters behave the same on every screen~~ (`tests/test_app.py`: one filter change checked on all three screens)
+- [x] ~~Every metric shows its unit~~ (`tests/test_app.py`; singular and plural)
+- [x] ~~Empty filter results show a clear message~~ (`tests/test_app.py`, all three screens; seen in the browser)
+- [x] ~~"Synthetic data" label is visible~~ (`tests/test_app.py`, all three screens)
+
+**Phase 4 result (9 Oct):** 134 tests pass. Run with `uv run streamlit run app/main.py`.
+Bugs B-006 to B-008 found and fixed. The author asked to start Phase 5 in a fresh session.
+
+**Handoff notes for Phase 5 (read before starting):**
+- The Investigator design is agreed: `docs/ui-design.md`, section Investigator. Build it as a fourth
+  page in `app/main.py`; the shared filters are rendered only for pages in `DASHBOARD`, so leave the
+  Investigator out of that tuple.
+- Security rule in the PRD: show the agent's text and the report with links and images off.
+- Tool inputs: times must be explicit ISO 8601 (`parse_utc` refuses "today"); search windows include
+  the start and exclude the end; usernames match regardless of case. Say all three in the tool
+  descriptions.
+- Reuse the core: `detect_all` / `Finding.to_dict()` for `find_suspicious_activity`; `search_logins`
+  (20-row sample, max 50) for `search_logins`; saved AbuseIPDB responses in `data/ip_reputation/`.
+  Reserved addresses should get "reserved, no reputation data" without an API call.
+- "Today" in the system prompt is the capture date: `generator.CAPTURED_AT`, not the clock.
+- Running all rules takes about 1.5 s; the screens cache it in `app/shared.py` (`all_findings`).
 
 ## Phase 5 — Agent
 

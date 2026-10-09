@@ -330,3 +330,54 @@ from tested core functions; Streamlit code in `app/`; three small core additions
 their rows, threshold reasons as data, `stats.py`); cached data; automated screen tests for the PRD's
 dashboard acceptance criteria; then a browser check and a screenshot per screen.
 **Next:** the author approved ("screenshot has been taken, rename it. then Go").
+
+### P-020 · 2026-10-09 · Phase 4 Dashboard
+
+**Prompt:**
+> screenshot has been taken, rename it. then Go
+
+**Purpose:** approve the Phase 4 build plan and build the three dashboard screens.
+**Result:** the design documents were committed first (`9bd6f4f`). Core additions: findings remember
+their rows (`row_ids`, `findings_matching`), the threshold reasons became data (`RULE_GUIDE`), and
+`stats.py` counts for the charts. Screens in `app/`: Overview, Alerts and Log explorer, with shared
+cached data and sidebar filters. The chart colours were run through the palette validator in light
+and dark mode, not chosen by eye. Two security additions beyond the plan: the CSV export neutralises
+spreadsheet formulas (CSV injection), and the tables' built-in export was switched off so the
+protected button is the only way out (B-007). 18 screen tests cover the PRD's dashboard acceptance
+criteria, and breaking the screens on purpose made them fail. A browser check found four display
+problems that the tests had passed (B-008). Bugs B-006 to B-008 logged. 134 tests pass.
+**Next:** the author asked to leave the agent for a fresh session (P-021).
+
+### P-021 · 2026-10-09 · Phase 4 Dashboard
+
+**Prompt:**
+> claude pls keep the aget part for a fresh session with u if possible
+
+**Purpose:** stop before Phase 5 and start the agent work in a new session.
+**Result:** Phase 4 was finished and checked; a handoff note for Phase 5 was added to PROGRESS.md.
+**Next:** the author reviews Phase 4; Phase 5 in a fresh session.
+
+### P-022 · 2026-10-09 · Phase 4 Dashboard
+
+**Prompt:**
+> the 3 screenshots has been saved, rename them, then commit phase 4 pls
+
+**Purpose:** record the three screen screenshots and commit Phase 4.
+**Result:** Claude viewed each screenshot, then renamed them `05-overview.png`, `06-alerts.png` and
+`07-log-explorer.png`; PROGRESS.md ticked; Phase 4 committed. Claude noted that the screenshots show
+the browser's bookmarks bar and profile picture, a Phase 7 item before the repo goes public.
+**Next:** Phase 5 in a fresh session.
+
+### P-023 · 2026-10-09 · Phase 4 Dashboard
+
+**Prompt:**
+> fresh new 3 screenshots has been taken pls replace the privacy exposed ones
+
+(Followed by "Amend the Phase 4 commit".)
+
+**Purpose:** replace the three screen screenshots that showed the browser's bookmarks bar and profile
+picture, and keep the exposed versions out of git history.
+**Result:** Claude viewed the new screenshots, found them clean, and overwrote `05` to `07`. It also
+checked `01-first-prompt.png`, which it had not opened before: clean. The Phase 4 commit was amended,
+so the exposed images are in no commit that can be pushed.
+**Next:** Phase 5 in a fresh session.

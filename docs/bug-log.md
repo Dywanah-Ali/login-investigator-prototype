@@ -83,3 +83,42 @@ Every rule and the search use it. The raw usernames stay unchanged in the rows a
 detection rule that treats spelling variants as different things can be evaded by changing case.
 **Found by:** review (the supervisor asked for consistent matching; reproducing it showed the
 evasion). Related prompt: P-016.
+
+### B-006 · 2026-10-09 · Phase 4 Dashboard
+
+**Symptom:** search counted "distinct users" by exact spelling. Reproduced: three usernames, each
+also present in capitals, were reported as 6 users instead of 3.
+**Cause:** B-005 made every rule treat usernames regardless of case, but the count in the search
+summary still used the raw values. The fix for B-005 missed one place.
+**Fix:** the count uses the shared `account_key`. The counting step was split out as `summarize`,
+so the dashboard reuses it instead of counting on its own. 2 new tests.
+**Lesson:** after fixing a definition, search for every place that answers the same question.
+**Found by:** manual check while planning the Overview's counts. Related prompt: P-020.
+
+### B-007 · 2026-10-09 · Phase 4 Dashboard
+
+**Symptom:** in the browser, every table had Streamlit's own CSV download icon. It exported the
+raw rows, skipping the protection against spreadsheet formulas (CSV injection) that the "Download
+these rows" button applies.
+**Cause:** Streamlit adds an export button to every table by default; the design only considered
+the app's own button.
+**Fix:** `disableDataExport = true` in `.streamlit/config.toml`, so the protected button is the only
+export. This is not a data-protection control; it only removes the unprotected path.
+**Lesson:** a framework's defaults are part of the attack surface. Check what the page actually
+offers, not only what the code adds.
+**Found by:** manual check in the browser. Related prompt: P-020.
+
+### B-008 · 2026-10-09 · Phase 4 Dashboard
+
+**Symptom:** four display problems seen only in the browser or a headless run: the alert table was
+too wide, hiding "Last seen"; counts read "1 events", "1 usernames", "1 IPs"; a one-row result sat
+in a tall block of empty rows; and "Distinct users: 57" overstated a company of 50, because it
+included the 7 fake usernames the spraying attacker tried.
+**Cause:** layout and wording were written before being looked at; the tests checked values, not
+how they read.
+**Fix:** column widths and shorter times in the alert table; a `count()` helper for singular and
+plural; table height that follows the rows; the tile renamed "Usernames seen", with a note that it
+includes guessed names. 2 new tests for the singular and plural forms.
+**Lesson:** passing tests do not show how a screen reads. Look at it, and treat a misleading label
+as a bug, not polish.
+**Found by:** manual check (browser and headless run). Related prompt: P-020.

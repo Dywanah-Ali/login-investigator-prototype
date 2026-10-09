@@ -22,11 +22,18 @@ _To be written._
 
 ## Run the app
 
-_To be written._
+```bash
+uv run streamlit run app/main.py
+```
+
+The dashboard opens at http://localhost:8501 with three screens: Overview, Alerts and Log explorer.
+The investigator agent is added in a later phase.
 
 ## Run the tests
 
-_To be written._
+```bash
+uv run pytest
+```
 
 ## How the data was made
 

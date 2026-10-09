@@ -14,31 +14,14 @@ import pandas as pd
 
 from login_investigator.loader import TIMESTAMP_FORMAT, account_key, parse_window, to_records
 
-# --- Thresholds. Each comment is the reason, written to be quoted. ---
-# These are assumptions tuned to this synthetic dataset, not general facts about attackers. A real
-# deployment would set them from its own baseline of normal activity.
+# --- Thresholds. The reason for each one is in RULE_GUIDE and GENERAL_ASSUMPTIONS below, written
+# to be quoted; the Alerts screen shows the same text. ---
 
-# We assume an hour is long enough to catch an automated tool and short enough that, in this
-# dataset, a busy office's ordinary typos never add up.
 ATTACK_WINDOW = timedelta(minutes=60)
-
-# In this dataset, staff mistype a password at most 4 times in a day, so we assume 20 failures on
-# one account within an hour is automated guessing.
 BRUTE_FORCE_MIN_FAILURES = 20
-
-# In this dataset, the busiest office address sees at most 3 people mistype within an hour, so we
-# assume 10 accounts failing from one address within an hour is a list being worked through.
 SPRAYING_MIN_ACCOUNTS = 10
-
-# In this dataset, staff who mistype succeed after 1 or 2 tries, so we assume a success after 10 or
-# more failures from the same address in the hour before means the password was guessed.
 SUCCESS_AFTER_MIN_FAILURES = 10
-
-# We assume 5 earlier sign-ins are enough to establish a user's usual country; with fewer, the rule
-# does not judge.
 NEW_COUNTRY_MIN_HISTORY = 5
-
-# We assume flagged activity separated by a pause longer than 30 minutes is two separate incidents.
 INCIDENT_GAP = timedelta(minutes=30)
 
 # A finding carries at most this many evidence rows; the counts always cover every event.
@@ -48,6 +31,67 @@ BRUTE_FORCE = "brute_force"
 PASSWORD_SPRAYING = "password_spraying"
 SUCCESS_AFTER_FAILURES = "success_after_failures"
 NEW_COUNTRY = "new_country"
+
+
+@dataclass(frozen=True)
+class RuleGuide:
+    """What a rule looks for and the assumption behind its threshold, in plain words."""
+
+    rule: str
+    title: str
+    fires_when: str
+    assumption: str
+
+
+_HOUR = f"{int(ATTACK_WINDOW.total_seconds() // 60)} minutes"
+
+RULE_GUIDE = (
+    RuleGuide(
+        BRUTE_FORCE,
+        "Brute force",
+        f"{BRUTE_FORCE_MIN_FAILURES} or more failed sign-ins on one account from one IP address "
+        f"within {_HOUR}.",
+        "In this dataset, staff mistype a password at most 4 times in a day, so we assume "
+        f"{BRUTE_FORCE_MIN_FAILURES} failures on one account within an hour is automated guessing.",
+    ),
+    RuleGuide(
+        PASSWORD_SPRAYING,
+        "Password spraying",
+        f"One IP address fails on {SPRAYING_MIN_ACCOUNTS} or more different accounts within "
+        f"{_HOUR}.",
+        "In this dataset, the busiest office address sees at most 3 people mistype within an hour, "
+        f"so we assume {SPRAYING_MIN_ACCOUNTS} accounts failing from one address within an hour "
+        "is a list being worked through.",
+    ),
+    RuleGuide(
+        SUCCESS_AFTER_FAILURES,
+        "Success after repeated failures",
+        f"A successful sign-in follows {SUCCESS_AFTER_MIN_FAILURES} or more failures from the same "
+        f"IP address on the same account within the {_HOUR} before.",
+        "In this dataset, staff who mistype succeed after 1 or 2 tries, so we assume a success "
+        f"after {SUCCESS_AFTER_MIN_FAILURES} or more failures means the password was guessed.",
+    ),
+    RuleGuide(
+        NEW_COUNTRY,
+        "Sign-in from a new country",
+        "A successful sign-in from a country the user has never signed in from before, once the "
+        f"user has at least {NEW_COUNTRY_MIN_HISTORY} earlier successful sign-ins.",
+        f"We assume {NEW_COUNTRY_MIN_HISTORY} earlier sign-ins are enough to establish a user's "
+        "usual country; with fewer, the rule does not judge.",
+    ),
+)
+
+GENERAL_ASSUMPTIONS = (
+    "These thresholds are assumptions tuned to this synthetic dataset, not general facts about "
+    "attackers. A real deployment would set them from its own baseline of normal activity.",
+    "We assume an hour is long enough to catch an automated tool and short enough that, in this "
+    "dataset, a busy office's ordinary typos never add up.",
+    f"We assume flagged activity separated by a pause longer than "
+    f"{int(INCIDENT_GAP.total_seconds() // 60)} minutes is two separate incidents.",
+    "Usernames are compared without regard to case, so changing case cannot split a count.",
+)
+
+RULE_TITLES = {guide.rule: guide.title for guide in RULE_GUIDE}
 
 
 @dataclass(frozen=True)
@@ -64,6 +108,9 @@ class Finding:
     first_seen: pd.Timestamp
     last_seen: pd.Timestamp
     evidence: tuple[dict, ...]  # raw log rows: the first and last events when there are many
+    # Index labels of every log row the finding covers, for matching against filters. Not part of
+    # to_dict: the agent sees the counts and the evidence, not row numbers.
+    row_ids: tuple = ()
 
     def to_dict(self) -> dict:
         """Plain data, ready for JSON (the agent tool) or a table (the Alerts screen)."""
@@ -100,6 +147,7 @@ def _finding(rule: str, summary: str, rows: pd.DataFrame) -> Finding:
         first_seen=rows["timestamp_utc"].iloc[0],
         last_seen=rows["timestamp_utc"].iloc[-1],
         evidence=tuple(to_records(evidence_rows)),
+        row_ids=tuple(rows.index),
     )
 
 
@@ -211,3 +259,10 @@ def detect_all(df: pd.DataFrame, start=None, end=None) -> list[Finding]:
     if end is not None:
         findings = [f for f in findings if f.first_seen < end]
     return sorted(findings, key=lambda f: (f.first_seen, f.rule))
+
+
+def findings_matching(findings: list[Finding], rows: pd.DataFrame) -> list[Finding]:
+    """Keep the findings with at least one event among `rows`, such as the rows that pass the
+    dashboard filters. `rows` must keep the index of the loaded log."""
+    wanted = set(rows.index)
+    return [f for f in findings if wanted.intersection(f.row_ids)]

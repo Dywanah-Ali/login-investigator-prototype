@@ -18,7 +18,7 @@ Purpose: make the overnight spike impossible to miss, so the analyst knows what 
 
 | Part | Content |
 | --- | --- |
-| Number tiles | Sign-in attempts (events); failed attempts (events and % of total); distinct users (users); alerts (findings) |
+| Number tiles | Sign-in attempts (events); failed attempts (events and % of total); usernames seen (usernames; includes guessed ones that do not exist); alerts (findings) |
 | Main chart | Sign-ins per hour across the week, as **stacked bars**: successful and failed (author's choice, 9 Oct) |
 | Second chart | Top source IPs by failed sign-ins |
 

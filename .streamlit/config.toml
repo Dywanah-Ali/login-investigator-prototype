@@ -1,0 +1,11 @@
+# Streamlit settings for Login Investigator.
+
+[browser]
+gatherUsageStats = false
+
+[client]
+# Hide the developer menu and the "Deploy" button; this is an analyst's tool.
+toolbarMode = "viewer"
+# Hide the tables' built-in CSV download and copy, so the only export is the "Download these rows"
+# button, which neutralises spreadsheet formulas (CSV injection). Not a data-protection control.
+disableDataExport = true

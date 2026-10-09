@@ -279,3 +279,41 @@ def test_rules_and_search_agree_on_the_account(make_log):
     log = make_log(alternating_case(30))
     [finding] = rules.brute_force(log)
     assert search_logins(log, user="DANIEL.HUGHES").total == finding.event_count
+
+
+# --- Findings remember their rows, so dashboard filters can select them exactly ---
+
+
+def test_each_finding_covers_exactly_its_events(log, findings):
+    for f in findings:
+        assert len(f.row_ids) == f.event_count
+        rows = log.loc[list(f.row_ids)]
+        assert rows["timestamp_utc"].min() == f.first_seen
+        assert rows["timestamp_utc"].max() == f.last_seen
+
+
+def test_row_ids_stay_out_of_the_agent_view(findings):
+    assert "row_ids" not in findings[0].to_dict()
+
+
+def test_findings_matching_the_filters(log, findings, s):
+    from login_investigator.search import filter_logins
+
+    assert rules.findings_matching(findings, log) == findings
+    by_user = rules.findings_matching(findings, filter_logins(log, user=s["S4"]["user"]))
+    assert [(f.rule, f.users) for f in by_user] == [(NEW_COUNTRY, (s["S4"]["user"],))]
+    by_country = rules.findings_matching(findings, filter_logins(log, country="US"))
+    assert by_country == []  # decoy users are all in the US, and none is flagged
+    successes = rules.findings_matching(findings, filter_logins(log, outcome="success"))
+    assert {f.rule for f in successes} == {SUCCESS_AFTER_FAILURES, NEW_COUNTRY}
+
+
+def test_rule_guide_covers_every_rule_and_quotes_the_real_thresholds():
+    assert [g.rule for g in rules.RULE_GUIDE] == [r.__name__ for r in rules.RULES]
+    guide = {g.rule: g for g in rules.RULE_GUIDE}
+    assert str(BRUTE_FORCE_MIN_FAILURES) in guide[BRUTE_FORCE].fires_when
+    assert str(SPRAYING_MIN_ACCOUNTS) in guide[PASSWORD_SPRAYING].fires_when
+    assert str(SUCCESS_AFTER_MIN_FAILURES) in guide[SUCCESS_AFTER_FAILURES].fires_when
+    assert str(NEW_COUNTRY_MIN_HISTORY) in guide[NEW_COUNTRY].fires_when
+    for g in rules.RULE_GUIDE:
+        assert "assume" in g.assumption  # worded as an assumption, not a fact
