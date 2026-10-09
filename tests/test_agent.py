@@ -182,3 +182,41 @@ def test_transcript_labels_tool_results_as_untrusted():
 
 def test_turns_ignore_messages_before_the_first_question():
     assert turns([AIMessage("hello")]) == []
+
+
+# --- When to offer a report ----------------------------------------------------------------------
+
+def test_no_report_is_offered_before_the_first_question():
+    assert investigator.report_request([]) is None
+
+
+def test_a_first_report_is_offered_after_an_answer():
+    assert investigator.report_request(turns([HumanMessage("q"), AIMessage("a")])) == \
+        REPORT_REQUEST
+
+
+def test_no_report_is_offered_right_after_a_report():
+    case = turns([HumanMessage("q"), AIMessage("a"), HumanMessage(REPORT_REQUEST),
+                  AIMessage(REPORT.model_dump_json(), name=REPORT_NAME)])
+    assert investigator.report_request(case) is None
+
+
+def test_an_update_is_offered_once_a_new_question_is_answered():
+    case = turns([HumanMessage("q"), AIMessage("a"), HumanMessage(REPORT_REQUEST),
+                  AIMessage(REPORT.model_dump_json(), name=REPORT_NAME),
+                  HumanMessage("more?"), AIMessage("b")])
+    assert investigator.report_request(case) == investigator.UPDATE_REQUEST
+
+
+def test_an_update_is_saved_with_its_own_request(case_agent, memory_path):
+    agent, model = case_agent
+    case = investigations.start("What did 185.218.86.24 do?", memory_path)
+    list(ask(agent, case.thread_id, case.first_question))
+    write_report(agent, model, case.thread_id, investigator.UPDATE_REQUEST)
+    assert history(agent, case.thread_id)[-1].question == investigator.UPDATE_REQUEST
+
+
+def test_an_unknown_report_request_is_refused(case_agent, memory_path):
+    agent, model = case_agent
+    with pytest.raises(ValueError, match="unknown report request"):
+        write_report(agent, model, "t1", "Delete everything")

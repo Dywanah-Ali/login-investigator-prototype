@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
 **Current phase:** 4 — Dashboard
-**Current step:** Phase 5 committed (local, not pushed). Phase 6 (evals) next: start in a fresh session if the author prefers
+**Current step:** Phase 5 — one step added: the incident report as a PDF. Build it first in the next session (see the handoff notes at the end of Phase 5), then Phase 6
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -103,10 +103,33 @@ Bugs B-006 to B-008 found and fixed. The author asked to start Phase 5 in a fres
 - [x] ~~Structured incident report~~ (separate chain with structured output; saved into the case; `tests/test_agent.py`)
 - [x] ~~Investigator screen with chat and the list of past investigations 📸~~ (`app/screens/investigator.py`; `tests/test_investigator_screen.py`; `screenshots/12-` to `15-`)
 
+- [x] ~~Report button offered only when it adds something new~~ (added after Gate 2, the author's finding; B-017; `tests/test_investigator_screen.py`)
+- [ ] Download the incident report as a PDF (added after Gate 2, the author's request, 9 Oct; PRD decisions log)
+
 **Gate 2:** the core scenario from the PRD runs end to end in the live app. ✅ **Passed 9 Oct, Claude's browser run:** all
 8 steps, including an app restart and reopening the case; the block request was refused with
 specific recommendations. The author's own run followed the same day (screenshots 12 to 15).
 Judgement slips seen on the way are in B-013, for the Phase 6 evals.
+
+**Handoff notes for the next session (read before starting):**
+- First build the PDF download, then start Phase 6. The decision is in the PRD decisions log.
+- PDF rules: plain text only. No link annotations, no images, and no markup parsing. ReportLab's
+  `Paragraph` reads HTML-like tags such as `<a>` and `<img>` from the text, so either escape the
+  text or use a library call that writes raw text. The core fonts cover Latin-1 only, and the model
+  writes characters such as "→" or curly quotes: choose a Unicode font or replace those characters,
+  and test with them. A new dependency goes into `pyproject.toml` with a pinned version.
+- Put the PDF builder in the core (no Streamlit), test it (every fixed field present, no link
+  annotations, an injected link stays plain text), and add `st.download_button` under the report
+  card in `app/screens/investigator.py`.
+- Restart the app after any change to `login_investigator/`: Streamlit never reloads that folder (B-016).
+- Phase 6 starts from the open bugs: B-011 (S5 text ignored but not reported) and B-013 (judgement
+  slips; the follow-up miscount happened in both runs inside the app, and in none of the four
+  runs read in full outside it).
+- Run the agent without the screen: `make_model()`, `investigations.open_memory(path)`,
+  `build_agent(model, memory)`, then `ask(agent, thread_id, question)` and `history(...)`, all in
+  `login_investigator/agent.py`. Use a temporary memory path for evals, never `memory/`.
+- Gold answers come from `evals/ground_truth.json`; the agent's tools never read it.
+- Clear the memory file before recording the video: it holds Claude's test cases.
 
 ## Phase 6 — Evals
 

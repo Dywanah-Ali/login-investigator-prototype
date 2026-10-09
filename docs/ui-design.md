@@ -67,7 +67,7 @@ filtered: the agent chooses its own time windows.
 | Starter questions | Shown in an empty case, such as "Anything suspicious last night?"; one click asks it |
 | Chat | The analyst's questions and the agent's answers |
 | Tools used | Under each answer, a collapsible list of the tools called. Each call shows a plain "Asked" line and a "Found" line written by code from the tool's result, its log rows in a table, and the raw JSON behind a "Show raw data" switch (author's choice, 9 Oct: the raw JSON alone read like code to an end user) |
-| Incident report | A **button plus chat** (author's choice, 9 Oct): the button sends "Write the incident report" into the chat. The report is shown as a card with the fixed fields: title, severity, summary, attacker IPs, affected users, timeline, evidence, next steps |
+| Incident report | A **button plus chat** (author's choice, 9 Oct): the button sends "Write the incident report" into the chat. The report is shown as a card with the fixed fields: title, severity, summary, attacker IPs, affected users, timeline, evidence, next steps. A "Download PDF" button under the card saves the same fields as a plain-text PDF (author's choice, 9 Oct). The report button shows only when a report would add something new: not right after a report, and as "Update the incident report" once a new question has been answered (author's choice, 9 Oct) |
 
 - **Security:** the agent's text and the report card are displayed with links and images switched
   off. A known prompt-injection escape route makes the model write an image link to an attacker's

@@ -35,7 +35,7 @@ KEY_AGENT = "investigator_agent"
 KEY_MODEL = "investigator_model"
 KEY_CASE = "investigator_case"  # thread id of the open case; None for a new, empty case
 KEY_ASK = "investigator_ask"  # a question waiting to be asked, from a starter button
-KEY_REPORT = "investigator_report"  # True when the report button was pressed
+KEY_REPORT = "investigator_report"  # the report request, set when the report button is pressed
 
 
 @st.cache_resource(show_spinner=False)
@@ -71,8 +71,8 @@ def ask_starter(question: str) -> None:
     st.session_state[KEY_ASK] = question
 
 
-def ask_for_report() -> None:
-    st.session_state[KEY_REPORT] = True
+def ask_for_report(request: str) -> None:
+    st.session_state[KEY_REPORT] = request
 
 
 # --- Display -------------------------------------------------------------------------------------
@@ -162,13 +162,13 @@ def ask(agent, question: str) -> bool:
     return True
 
 
-def write_report(agent, model) -> bool:
+def write_report(agent, model, request: str) -> bool:
     with st.chat_message("user"):
-        st.text(investigator.REPORT_REQUEST)
+        st.text(request)
     with st.chat_message("assistant"):
         try:
             with st.spinner("Writing the incident report…"):
-                investigator.write_report(agent, model, st.session_state[KEY_CASE])
+                investigator.write_report(agent, model, st.session_state[KEY_CASE], request)
         except Exception:
             show_error("The report could not be written.")
             return False
@@ -207,7 +207,9 @@ for turn in past:
 
 question = st.chat_input("Ask about the sign-in log")
 question = question or st.session_state.pop(KEY_ASK, None)
-wants_report = st.session_state.pop(KEY_REPORT, False)
+wants_report = st.session_state.pop(KEY_REPORT, None)
+# Offered only when it would add something: not twice in a row, and as an update after new answers.
+report_offer = investigator.report_request(past)
 
 # The starters or the report button. Cleared before an answer streams, or the previous run's
 # buttons would stay on screen, greyed out, until the answer finished.
@@ -216,17 +218,17 @@ if question:
     footer.empty()
     if ask(agent, question):
         st.rerun()  # redraw from memory, with the tool calls under the answer
-elif wants_report and current:
+elif wants_report and current and wants_report == report_offer:
     footer.empty()
-    if write_report(agent, model):
+    if write_report(agent, model, wants_report):
         st.rerun()
 elif not past:
     with footer.container():
         st.caption("Ask a question below, or start with one of these:")
         for starter in STARTERS:
             st.button(starter, on_click=ask_starter, args=(starter,), icon=":material/search:")
-else:
+elif report_offer:
     with footer.container():
-        st.button("Write the incident report", icon=":material/description:",
-                  on_click=ask_for_report,
-                  help="Sends \"Write the incident report\" and shows the report as a card.")
+        st.button(report_offer, icon=":material/description:", on_click=ask_for_report,
+                  args=(report_offer,),
+                  help=f"Sends \"{report_offer}\" and shows the report as a card.")

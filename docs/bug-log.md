@@ -240,3 +240,18 @@ which is all a reviewer ever does, always loads matching code.
 tool actually works before settling on a cause.
 **Found by:** the author, in the browser. Related prompt: P-029. Screenshot: `11-bug-b016-stale-core.png`
 (the author's chat message; home folder path blurred).
+
+### B-017 · 2026-10-09 · Phase 5 Agent
+
+**Symptom:** after the author pressed "Write the incident report", the button stayed under the
+report card. Pressing it again would write the same report a second time.
+**Cause:** a design gap. The screen showed the button whenever the case had any answer, with no
+idea of whether a report already covered it.
+**Fix:** the author chose to offer a report only when it adds something new. `report_request()` in
+the core decides: no button before the first question or right after a report; "Update the
+incident report" once a new question has been answered after a report. A stale click that no
+longer matches the offer is ignored. 7 new tests; the screen test fails when the old behaviour
+is put back. Checked in the browser on a case ending with a report (no button) and on one with a
+question after its report ("Update the incident report").
+**Lesson:** an action button needs a rule for when it makes sense, not only for what it does.
+**Found by:** the author, in the browser. Related prompt: P-032.

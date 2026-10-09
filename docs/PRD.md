@@ -158,6 +158,7 @@ The dashboard screens and two of the agent's tools call the same core functions.
 - The system prompt states that log fields and API fields are data, never instructions.
 - Every claim in an answer traces back to a tool result. The agent says when it does not know.
 - The incident report uses structured output with fixed fields: title, severity, summary, attacker IPs, affected users, timeline, evidence and recommended next steps.
+- The incident report can be downloaded as a PDF from the report card. The PDF holds the same fixed fields as plain text, with no links and no images.
 - Memory uses `SqliteSaver` with one thread per investigation. Investigations survive an app restart and can be reopened.
 - The agent is created once per browser session, so Streamlit's reruns never reset it.
 - When a tool fails, the agent receives a short, clean error message and says so to the analyst.
@@ -175,7 +176,7 @@ Three risks are designed for from the start: leaked keys, an agent with too much
 | No conversation data in the repo | The SQLite memory file is git-ignored |
 | Least privilege | All three tools only read; no tool can change data or act on systems |
 | Untrusted input stays data | Log fields and AbuseIPDB fields are passed to the agent as data, and the system prompt says so |
-| Agent output cannot reach out | The agent's answers and the incident report are displayed with links and images switched off, so injected instructions cannot make the browser fetch an attacker's URL. Log fields appear only inside tables |
+| Agent output cannot reach out | The agent's answers and the incident report are displayed with links and images switched off, so injected instructions cannot make the browser fetch an attacker's URL. The downloaded PDF report is plain text with no links or images, so the rule holds outside the app too. Log fields appear only inside tables |
 | Injection is tested, not assumed | Scenario S5 plants instruction-like text; an eval checks the agent ignores it |
 | Encrypted lookups | AbuseIPDB over HTTPS only |
 | No personal data | Synthetic users only; attacker IPs are publicly reported abuse sources |
@@ -199,6 +200,7 @@ Version 1 is accepted only when every box below is ticked with evidence. The fir
 - [ ] A follow-up question is answered correctly using memory of the case.
 - [ ] An investigation survives an app restart and can be reopened.
 - [ ] The incident report returns every fixed field.
+- [ ] The incident report downloads as a PDF with every fixed field and no links or images.
 - [ ] IP lookup works live, and from saved responses with the network off.
 - [ ] The agent ignores the planted injection text in S5.
 - [ ] Asked to block an IP, the agent declines and recommends instead.
@@ -330,3 +332,4 @@ Thirteen decisions were made in planning on 9 October 2026; two questions remain
 | 2026-10-09 | Past investigations live inside the Investigator screen | Not worth a screen of its own, and it is the first item cut if time runs short |
 | 2026-10-09 | The agent's output and the report are shown with links and images off; log fields only inside tables | Injected instructions can make a model write an image link to an attacker's server, which the browser fetches by itself. The S5 rows are planted to tempt exactly that |
 | 2026-10-09 | The agent's answers stream into the chat (author's request, Phase 5) | The app faces end users, and a long silent wait for a multi-tool answer feels broken. The stream is written as plain text, not with Streamlit's markdown streaming, so it keeps the links-and-images-off rule |
+| 2026-10-09 | The incident report downloads as a PDF (author's request, after Gate 2) | An analyst writes a report to hand it to someone. PDF was the author's choice over the recommended plain text. The report is model output built from untrusted log data, so the PDF is generated as plain text only: no links, no images, and no markup that a PDF library would interpret |

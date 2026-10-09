@@ -135,3 +135,23 @@ def test_a_missing_key_gives_a_clear_message(monkeypatch, tmp_path):
     monkeypatch.delenv(investigator.KEY_NAME, raising=False)
     at = open_page()
     assert any("OPENROUTER_API_KEY is not set" in e.value for e in at.error)
+
+
+def labels(at):
+    return [b.label for b in at.button]
+
+
+def test_the_report_button_waits_for_something_new(fake):
+    at = click(click(open_page(), "Anything suspicious last night?"),
+               "Write the incident report")
+    # Right after a report there is nothing new to report.
+    assert "Write the incident report" not in labels(at)
+    assert "Update the incident report" not in labels(at)
+
+    at.chat_input[0].set_value("Anything else?").run()
+    assert "Update the incident report" in labels(at)
+
+    click(at, "Update the incident report")
+    assert "Update the incident report" in texts(at)  # the request, shown in the chat
+    assert texts(at).count(REPORT.title) == 2  # the first report stays, the update is added
+    assert "Update the incident report" not in labels(at)

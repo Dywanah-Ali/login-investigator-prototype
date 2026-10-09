@@ -154,6 +154,8 @@ def ask(agent, thread_id: str, question: str) -> Iterator[Stream]:
 # --- The incident report -------------------------------------------------------------------------
 
 REPORT_REQUEST = "Write the incident report"
+UPDATE_REQUEST = "Update the incident report"
+REPORT_REQUESTS = (REPORT_REQUEST, UPDATE_REQUEST)
 REPORT_NAME = "incident_report"  # marks the report's message in the case's memory
 
 Severity = Literal["none", "low", "medium", "high", "critical"]
@@ -219,15 +221,28 @@ def transcript(messages) -> str:
     return "\n\n".join(lines)
 
 
-def write_report(agent, model, thread_id: str) -> IncidentReport:
+def report_request(case: list[Turn]) -> str | None:
+    """What the report button should ask for, or None when a report would add nothing new.
+
+    No button before the first question, and none right after a report. Once a report exists and
+    a new question has been answered, the button offers an updated report.
+    """
+    if not case or case[-1].report is not None:
+        return None
+    return UPDATE_REQUEST if any(turn.report is not None for turn in case) else REPORT_REQUEST
+
+
+def write_report(agent, model, thread_id: str, request: str = REPORT_REQUEST) -> IncidentReport:
     """Write the report from the case so far, then save it into the case, so it survives a
     restart and the agent knows about it in later questions."""
+    if request not in REPORT_REQUESTS:
+        raise ValueError(f"unknown report request {request!r}")
     config = _config(thread_id)
     messages = agent.get_state(config).values.get("messages", [])
     chain = REPORT_PROMPT | model.with_structured_output(IncidentReport)
     report = chain.invoke({"today": TODAY["today"], "transcript": transcript(messages)})
     agent.update_state(config, {"messages": [
-        HumanMessage(REPORT_REQUEST),
+        HumanMessage(request),
         AIMessage(report.model_dump_json(), name=REPORT_NAME),
     ]}, as_node="model")
     return report

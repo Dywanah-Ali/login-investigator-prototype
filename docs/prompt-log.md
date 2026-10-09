@@ -481,3 +481,32 @@ the original outside the repo. The follow-up answer in `14-` repeats the miscoun
 "three successful sign-ins after the initial one", where there were two. PROGRESS.md: the
 Investigator step is ticked and Phase 5 is done.
 **Next:** the author decides whether to commit Phase 5; then Phase 6, the evals.
+
+### P-031 · 2026-10-09 · Phase 5 Agent
+
+**Prompt:**
+> one of the planned requirements is to have some kind of file download, i do not remember what exactly. but maybe it is a saubsequest step when a "write theincident report" is done.
+
+(Followed by "agree with ur recommendation but the format should bd pdf.")
+
+**Purpose:** check whether a download was planned, and add a report download.
+**Result:** Claude searched the PRD and the design notes. The only planned download was the CSV
+on the Log explorer, already built. Claude recommended a report download as a scope addition, in
+plain text for safety. The author agreed and chose PDF. Claude recorded it in the PRD (requirement,
+security row, acceptance criterion, decisions log), in `docs/ui-design.md` and as a new Phase 5
+step, with handoff notes for the next session. Not built yet.
+**Next:** a fresh session builds the PDF download, then starts Phase 6.
+
+### P-032 · 2026-10-09 · Phase 5 Agent
+
+**Prompt:**
+> before commit. i noticed an issue. the write the incident report button still exist at the bottom even after i click it first time. i guess it should be ran once per user/agent conversation
+
+(Followed by "A".)
+
+**Purpose:** stop the report button from offering a duplicate report.
+**Result:** Claude proposed offering the button only when a report would add something new,
+because a case can continue after its report. The author chose that option (A) over "once per
+conversation" (B). Built in the core and the screen, tested, and checked in the browser. Logged
+as B-017. 230 tests pass.
+**Next:** commit, then a fresh session for the PDF download and Phase 6.
