@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
 **Current phase:** 7 — Deliverables and submission
-**Current step:** Phase 7: personal info dry run shown to the author; then trim the prompt log, video and Google Doc
+**Current step:** Phase 7, Gate 3b: the author reviews the repo; then push, make public, submit
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -218,8 +218,8 @@ The author asked for some UI improvements before the video. Agreed conditions:
 - [x] ~~Every acceptance criterion in the PRD ticked with evidence~~ (`docs/PRD.md`, 18 of 18; new `tests/test_core_boundary.py` for the no-Streamlit rule, seen failing when broken)
 - [x] ~~README complete; the app starts from a fresh clone~~ (fresh clone 10 Oct: `uv sync`, 289 tests pass with no keys; with empty keys the dashboard loads and the Investigator shows a clean "key not set" message; with the key, one live question answered with 3 tool calls)
 - [x] ~~Scan the repo history for secrets~~ (every git object, 10 Oct: neither `.env` value, nor its first 12 characters, nor any key pattern found; the one `SECRET =` is a test fixture)
-- [ ] Google Doc: Phase 0 summary, build breakdown, prompts, iterations, bugs, learnings, eval results, screenshots
-- [ ] Video script, then record with Zoom (5 minutes or less) and upload to Google Drive (script: `docs/video-script.md`; recorded 10 Oct, 10 min 10 s, kept as is: the author's ruling, PRD decisions log; upload pending)
+- [x] ~~Google Doc: Phase 0 summary, build breakdown, prompts, iterations, bugs, learnings, eval results, screenshots~~ (built from the repo's logs as a Word file with 20 screenshots, uploaded to Drive by the author and shared by link; opens signed out; the author's review: "it is good", 10 Oct)
+- [x] ~~Video script, then record with Zoom (5 minutes or less) and upload to Google Drive~~ (script: `docs/video-script.md`; recorded 10 Oct, 10 min 10 s, kept as is: the author's ruling, PRD decisions log; on Drive, link opens signed out)
 - [ ] 👤 The author reviews everything
 
 **Gate 3b:** The author has reviewed the repo, the doc and the video.
