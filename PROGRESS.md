@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
-**Current phase:** 7 — Deliverables and submission
-**Current step:** Phase 7, Gate 3b: the author reviews the repo on GitHub (private); then make it public and submit
+**Current phase:** 7 — Deliverables and submission ✅
+**Current step:** Done. Submitted 10 October 2026.
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -220,11 +220,11 @@ The author asked for some UI improvements before the video. Agreed conditions:
 - [x] ~~Scan the repo history for secrets~~ (every git object, 10 Oct: neither `.env` value, nor its first 12 characters, nor any key pattern found; the one `SECRET =` is a test fixture)
 - [x] ~~Google Doc: Phase 0 summary, build breakdown, prompts, iterations, bugs, learnings, eval results, screenshots~~ (built from the repo's logs as a Word file with 20 screenshots, uploaded to Drive by the author and shared by link; opens signed out; the author's review: "it is good", 10 Oct)
 - [x] ~~Video script, then record with Zoom (5 minutes or less) and upload to Google Drive~~ (script: `docs/video-script.md`; recorded 10 Oct, 10 min 10 s, kept as is: the author's ruling, PRD decisions log; on Drive, link opens signed out)
-- [ ] 👤 The author reviews everything
+- [x] ~~👤 The author reviews everything~~ (10 Oct: the doc and the video accepted; the repo reviewed on GitHub while still private)
 
-**Gate 3b:** The author has reviewed the repo, the doc and the video.
+**Gate 3b:** The author has reviewed the repo, the doc and the video. ✅ **Passed 10 Oct.**
 
 - [x] ~~**Remove the author's name and all personal info from the repo before it goes public:** every file, and the git history (commit authors included). Search the whole repo, not only the docs.~~ (10 Oct: dry run shown first; history rewritten with git-filter-repo: commit author `Dywanah-Ali` with the noreply email, the name in one quote replaced by "[author]", the unblurred screenshot 20 removed. Every git object scanned after: no name, email or key. Pushed to the private GitHub repo, remote `main` matches local)
-- [ ] 👤 Make the repo public; share both Drive links as "anyone with the link"
-- [ ] 👤 Open all three links in a private browser window
-- [ ] 👤 Submit the form
+- [x] ~~👤 Make the repo public; share both Drive links as "anyone with the link"~~ (all three open signed out, checked 10 Oct)
+- [x] ~~👤 Open all three links in a private browser window~~
+- [x] ~~👤 Submit the form~~ (10 Oct, a day before the deadline)
