@@ -805,3 +805,14 @@ the files each layer holds, and what leaves the machine. Added to `docs/phase0-s
 it fits together", marked as written after the build, and to the Google Doc. The video script gained
 a 40-second code tour; the other parts were tightened to keep the total near 4.5 minutes.
 **Next:** the author records the video.
+
+### P-051 · 2026-10-10 · Phase 7 Deliverables (video tool)
+
+**Prompt:**
+> *i prefer to use zoom for the recording as i have it installed on my mac
+
+**Purpose:** record the video with Zoom instead of Loom.
+**Result:** the PRD deliverables table, the decisions log, the tracker and the script now say Zoom.
+The script gained Zoom setup notes: local recording to MP4, one window shared at a time, and a check
+that the display-name thumbnail is not recorded.
+**Next:** the author records the video.

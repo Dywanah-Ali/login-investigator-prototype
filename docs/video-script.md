@@ -1,11 +1,17 @@
 # Video script (5 minutes or less)
 
-Recorded with Loom, shared from Google Drive. Times are targets; the total is about 4 minutes 30
+Recorded with Zoom (local recording, MP4), shared from Google Drive. Times are targets; the total is about 4 minutes 30
 seconds, which leaves 30 seconds of room for the agent's answers to stream.
 
 **Before recording:** the memory file is empty, the app has just been restarted, the browser shows
 no bookmarks bar or profile, and no terminal or `.env` is on screen. In VS Code, close the terminal
 panel and any `.env` tab, and open the files for part 4 in advance.
+
+**Zoom setup:** start a meeting on your own, share the screen, and choose "Record on this computer",
+not the cloud, so you get an MP4 to upload to Drive. Share one window at a time (the browser, then
+VS Code) or a clean desktop, so notifications and other apps stay out of the video. With the camera
+off, Zoom can still record a small thumbnail with your display name next to the shared screen.
+Check the recording settings first, or rename yourself for the meeting. Turn on Do Not Disturb.
 
 ## 1. The problem (0:00 to 0:20)
 

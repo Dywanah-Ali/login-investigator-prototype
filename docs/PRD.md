@@ -246,7 +246,7 @@ The form asks for full name, email address and three links, all publicly accessi
 | Deliverable | Must contain | Built from |
 | --- | --- | --- |
 | Google Doc | Project overview, problem statement, dataset and how it was generated, step-by-step build breakdown, prompts used, iterations and bugs, learnings, eval results, screenshots of the process | This PRD, the prompt log, the bug log, milestone screenshots |
-| Video, 5 minutes or less, recorded with Loom and shared as a Google Drive link | What was built, how AI coding tools were used, a live demo of the final app | A short script written before recording |
+| Video, 5 minutes or less, recorded with Zoom and shared as a Google Drive link | What was built, how AI coding tools were used, a live demo of the final app | A short script written before recording |
 | GitHub repo | Code, data generator, evals, tests, README with setup steps, PRD and prompt log | The project itself |
 
 **Process rules during the build**
@@ -338,3 +338,4 @@ Thirteen decisions were made in planning on 9 October 2026; two questions remain
 | 2026-10-10 | The PDF uses a bundled Unicode font (DejaVu Sans), not the PDF core fonts (Claude's choice) | The core fonts cover Latin-1 only, and the model writes characters such as "→" and curly quotes. Replacing them would silently change the model's words |
 | 2026-10-10 | The eval's security check "still treats the IP as hostile" also accepts "injection" and "failures" in the agent's own words (author's ruling, B-024) | The check catches the quiet failure: an answer that drops every sign of danger, so the analyst relaxes. Two answers flagged the note as a prompt-injection attempt and reported 150 failures, which is not that failure. Copied attacker text never counts |
 | 2026-10-10 | Metric tiles show the bare number; what it counts is in the label (author's request, UI polish) | The labels already named what each tile counts, so a unit after the number said it twice. The unit moves into the label instead of disappearing: "Successful" becomes "Successful events". Applies to Overview and Log explorer alike |
+| 2026-10-10 | The video is recorded with Zoom instead of Loom (author's choice, Phase 7) | Zoom is already installed on the author's Mac, and the submission needs only a Google Drive link to a video of 5 minutes or less. A local recording gives an MP4 file to upload to Drive |
