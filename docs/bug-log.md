@@ -255,3 +255,16 @@ is put back. Checked in the browser on a case ending with a report (no button) a
 question after its report ("Update the incident report").
 **Lesson:** an action button needs a rule for when it makes sense, not only for what it does.
 **Found by:** the author, in the browser. Related prompt: P-032.
+
+### B-018 · 2026-10-10 · Phase 5 Agent
+
+**Symptom:** in the first rendered PDF, the timeline table was filled dark red, with black text
+that was hard to read.
+**Cause:** fpdf2 keeps one fill colour for the whole page. The severity badge set it to red just
+before the table, and the table used it for every cell.
+**Fix:** the table sets its own fill (white cells, light grey heading row). Seen fixed in the
+rendered page. No automated test: the fault is visual, and reading colours back from a PDF would
+test fpdf2 more than this code.
+**Lesson:** a drawing library's settings carry over from one element to the next. Set each
+element's colours where it is drawn, and look at the output, not only at the text it holds.
+**Found by:** Claude, viewing the rendered page. Related prompt: P-034.

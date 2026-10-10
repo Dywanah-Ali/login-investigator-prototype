@@ -510,3 +510,57 @@ because a case can continue after its report. The author chose that option (A) o
 conversation" (B). Built in the core and the screen, tested, and checked in the browser. Logged
 as B-017. 230 tests pass.
 **Next:** commit, then a fresh session for the PDF download and Phase 6.
+
+### P-033 · 2026-10-10 · Phase 5 Agent
+
+**Prompt:**
+> Okay, well, fix the PROGRESS.md file first, then I have an idea about the PDF.
+
+**Purpose:** correct the tracker's header, which still said Phase 4.
+**Result:** Claude changed "Current phase" to "5 — Agent". Nothing else in the file was touched.
+**Next:** the author's idea for the PDF (P-034).
+
+### P-034 · 2026-10-10 · Phase 5 Agent
+
+**Prompt:**
+> yeah, I was thinking of having a template for this PDF in terms of the header and footer, and maybe how it should be structured. I am open to adopting this if it is simple and not too complicated, but if you think it is a little bit too much, we can drop it.
+
+(Followed by "this is good. I was thinking of adding a classification tag on the header, and I was
+thinking of confidential, but you highlighted something important to me. I remember now that this
+repo is public and that data is demo data anyway. We can add the classification still, but we make
+the classification education public. What do you think?", and then "approved".)
+
+**Purpose:** give the PDF report a fixed frame and a classification, then build the download.
+**Result:** Claude recommended the template: the code writes the header and footer, the model only
+fills the body, so nothing in a report can change its frame. The author proposed a classification;
+Claude suggested the Traffic Light Protocol, and the author approved
+"TLP:CLEAR · Educational use · Synthetic data". Recorded in the PRD and `docs/ui-design.md`.
+Claude built `login_investigator/report_pdf.py` with fpdf2 and a bundled DejaVu Sans font, and a
+"Download PDF" button under each report card. Found on the way: fpdf2 replaces the text "{nb}" with
+the page count anywhere on a page, model text included. Switched off; pages are counted by
+rendering twice. Bug B-018 found and fixed. 15 new tests; removing each safeguard makes its own
+test fail. 245 tests pass. Checked in the browser: the button shows under a saved case's report.
+The PDF built from that case's real report was viewed and looks right.
+**Next:** the author clicks "Download PDF" in the app and takes the screenshot; then commit and Phase 6.
+
+### P-035 · 2026-10-10 · Phase 5 Agent
+
+**Prompt:**
+> screenshot is taken and saved, rename it appropriatly pls. then commit
+
+**Purpose:** record the author's own download of the PDF, then commit the PDF step.
+**Result:** the screenshot shows a PDF the author downloaded from a new case in the live app, with
+the header, the TLP:CLEAR classification, every fixed field and the footer. Claude renamed it
+`16-incident-report-pdf.png`, ticked the PDF step in PROGRESS.md and committed.
+**Next:** Phase 6, the evals. Open decision: defang web addresses in the PDF.
+
+### P-035 · 2026-10-10 · Phase 5 Agent
+
+**Prompt:**
+> screenshot is taken and saved, rename it appropriatly pls. then commit
+
+**Purpose:** record the author's own download of the PDF, then commit the PDF step.
+**Result:** the screenshot shows a PDF the author downloaded from a new case in the live app, with
+the header, the TLP:CLEAR classification, every fixed field and the footer. Claude renamed it
+`16-incident-report-pdf.png`, ticked the PDF step in PROGRESS.md and committed.
+**Next:** Phase 6, the evals. Open decision: defang web addresses in the PDF.

@@ -155,3 +155,23 @@ def test_the_report_button_waits_for_something_new(fake):
     assert "Update the incident report" in texts(at)  # the request, shown in the chat
     assert texts(at).count(REPORT.title) == 2  # the first report stays, the update is added
     assert "Update the incident report" not in labels(at)
+
+
+def downloads(at):
+    return at.get("download_button")
+
+
+def test_each_report_card_offers_its_own_pdf(fake):
+    at = click(open_page(), "Anything suspicious last night?")
+    assert not downloads(at)  # no report yet, no PDF
+
+    click(at, "Write the incident report")
+    [first] = downloads(at)
+    assert first.proto.label == "Download PDF"
+    assert first.proto.deferred_file_id  # built only when clicked
+
+    at.chat_input[0].set_value("Anything else?").run()
+    click(at, "Update the incident report")
+    ids = [d.proto.id for d in downloads(at)]
+    assert len(ids) == 2 and len(set(ids)) == 2
+    assert ids[0].endswith("_1") and ids[1].endswith("_2")  # the number in the file name

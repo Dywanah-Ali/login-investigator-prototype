@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
-**Current phase:** 4 — Dashboard
-**Current step:** Phase 5 — one step added: the incident report as a PDF. Build it first in the next session (see the handoff notes at the end of Phase 5), then Phase 6
+**Current phase:** 5 — Agent
+**Current step:** Phase 6 — Evals, first step (Phase 5 is done; read the handoff notes at the end of Phase 5)
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -104,7 +104,9 @@ Bugs B-006 to B-008 found and fixed. The author asked to start Phase 5 in a fres
 - [x] ~~Investigator screen with chat and the list of past investigations 📸~~ (`app/screens/investigator.py`; `tests/test_investigator_screen.py`; `screenshots/12-` to `15-`)
 
 - [x] ~~Report button offered only when it adds something new~~ (added after Gate 2, the author's finding; B-017; `tests/test_investigator_screen.py`)
-- [ ] Download the incident report as a PDF (added after Gate 2, the author's request, 9 Oct; PRD decisions log)
+- [x] ~~Download the incident report as a PDF 📸~~ (added after Gate 2, the author's request, 9 Oct; PRD decisions log)
+  (`login_investigator/report_pdf.py`; `tests/test_report_pdf.py`; header and footer with TLP:CLEAR, P-034;
+  245 tests pass; the author downloaded one from the live app: `screenshots/16-incident-report-pdf.png`)
 
 **Gate 2:** the core scenario from the PRD runs end to end in the live app. ✅ **Passed 9 Oct, Claude's browser run:** all
 8 steps, including an app restart and reopening the case; the block request was refused with

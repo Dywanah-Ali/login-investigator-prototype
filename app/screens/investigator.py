@@ -7,13 +7,14 @@ which the browser would fetch on its own; plain text closes that route (PRD, Sec
 """
 
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 
 import streamlit as st
 
 from app import shared
 from login_investigator import agent as investigator
-from login_investigator import investigations
+from login_investigator import investigations, report_pdf
 from login_investigator.tool_views import describe
 from login_investigator.tools import TOOLS
 
@@ -96,7 +97,7 @@ def show_tools(turn: investigator.Turn) -> None:
                 st.code(view.raw, language="json", height=250, wrap_lines=True)
 
 
-def show_report(report: investigator.IncidentReport) -> None:
+def show_report(report: investigator.IncidentReport, case_id: str, number: int) -> None:
     label, colour = SEVERITY[report.severity]
     with st.container(border=True):
         st.caption("Incident report")
@@ -116,14 +117,22 @@ def show_report(report: investigator.IncidentReport) -> None:
         for heading, body in sections:
             st.caption(heading)
             st.text(body)
+        # Built only when clicked. The PDF is plain text with no links or images (PRD, Security).
+        st.download_button(
+            "Download PDF",
+            data=lambda: report_pdf.build(report, case_id, datetime.now(timezone.utc)),
+            file_name=report_pdf.file_name(case_id, number), mime="application/pdf",
+            key=f"pdf_{case_id}_{number}", on_click="ignore", icon=":material/download:",
+        )
 
 
-def show_turn(turn: investigator.Turn) -> None:
+def show_turn(turn: investigator.Turn, case_id: str, reports: int) -> None:
+    """reports: how many reports the case holds up to and including this turn."""
     with st.chat_message("user"):
         st.text(turn.question)
     with st.chat_message("assistant"):
         if turn.report is not None:
-            show_report(turn.report)
+            show_report(turn.report, case_id, reports)
         else:
             st.text(investigator.as_plain_text(turn.answer) or "No answer was given.")
             show_tools(turn)
@@ -202,8 +211,10 @@ with st.sidebar:
         )
 
 past = investigator.history(agent, current) if current else []
+reports = 0
 for turn in past:
-    show_turn(turn)
+    reports += turn.report is not None
+    show_turn(turn, current, reports)
 
 question = st.chat_input("Ask about the sign-in log")
 question = question or st.session_state.pop(KEY_ASK, None)
