@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
 **Current phase:** 7 — Deliverables and submission
-**Current step:** Phase 7, Gate 3b: the author reviews the repo; then push, make public, submit
+**Current step:** Phase 7, Gate 3b: the author reviews the repo on GitHub (private); then make it public and submit
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -224,7 +224,7 @@ The author asked for some UI improvements before the video. Agreed conditions:
 
 **Gate 3b:** The author has reviewed the repo, the doc and the video.
 
-- [ ] **Remove the author's name and all personal info from the repo before it goes public:** every file, and the git history (commit authors included). Search the whole repo, not only the docs.
+- [x] ~~**Remove the author's name and all personal info from the repo before it goes public:** every file, and the git history (commit authors included). Search the whole repo, not only the docs.~~ (10 Oct: dry run shown first; history rewritten with git-filter-repo: commit author `Dywanah-Ali` with the noreply email, the name in one quote replaced by "[author]", the unblurred screenshot 20 removed. Every git object scanned after: no name, email or key. Pushed to the private GitHub repo, remote `main` matches local)
 - [ ] 👤 Make the repo public; share both Drive links as "anyone with the link"
 - [ ] 👤 Open all three links in a private browser window
 - [ ] 👤 Submit the form
