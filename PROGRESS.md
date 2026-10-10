@@ -187,8 +187,8 @@ The author asked for some UI improvements before the video. Agreed conditions:
   bare numbers; main area 1,400 px on the dashboard screens and 860 px on the Investigator; scope line
   and AI note shown; progress lines "Checking the detection rules…", "Looking up IP reputation…",
   "Searching the sign-in log…"; input locked during a starter question and a typed one, open again after)
-  - [ ] 👤 📸 Screenshots of the new screens: Overview and the Investigator (none needed for the
-    past investigations box: the author's ruling, 10 Oct)
+  - [x] ~~👤 📸 Screenshots of the new screens: Overview and the Investigator~~ (dropped: the
+    existing screenshots are enough, the author's ruling, 10 Oct; the video shows the new screens)
 - [x] ~~All tests pass, and the app restarted and checked once end to end~~ (286 tests pass; app restarted;
   all four screens loaded, two live questions answered in one case)
 
