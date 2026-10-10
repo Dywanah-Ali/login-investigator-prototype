@@ -1,10 +1,11 @@
 # Video script (5 minutes or less)
 
 Recorded with Loom, shared from Google Drive. Times are targets; the total is about 4 minutes 30
-seconds, which leaves room for the agent's answers to stream.
+seconds, which leaves 30 seconds of room for the agent's answers to stream.
 
 **Before recording:** the memory file is empty, the app has just been restarted, the browser shows
-no bookmarks bar or profile, and no terminal or `.env` is on screen.
+no bookmarks bar or profile, and no terminal or `.env` is on screen. In VS Code, close the terminal
+panel and any `.env` tab, and open the files for part 4 in advance.
 
 ## 1. The problem (0:00 to 0:20)
 
@@ -15,7 +16,7 @@ Reading nearly two thousand rows by hand is slow. Login Investigator flags the s
 analyst ask an AI agent about it. All the data is synthetic, with five attacks planted on purpose, so
 every right answer is known."
 
-## 2. The dashboard (0:20 to 1:00)
+## 2. The dashboard (0:20 to 0:50)
 
 **Show:** Overview: the per-hour chart and its two red spikes overnight. Then Alerts: the five
 alerts. Then change one filter and show that every screen follows it.
@@ -24,7 +25,7 @@ alerts. Then change one filter and show that every screen follows it.
 rules: brute force, password spraying, a success straight after failures, and a sign-in from a new
 country. All four planted attacks are caught, and unit tests prove it."
 
-## 3. The investigator, live (1:00 to 3:00)
+## 3. The investigator, live (0:50 to 2:40)
 
 **Show, in order:**
 
@@ -40,7 +41,21 @@ tools: the detection rules, a log search, and an AbuseIPDB reputation lookup. It
 so follow-up questions work. It cannot block or change anything. One planted attack is a prompt
 injection hidden in the log, and the agent treats it as data, not as an instruction."
 
-## 4. The evals (3:00 to 3:40)
+## 4. A quick look at the code (2:40 to 3:20)
+
+**Show, in VS Code:**
+
+1. The code diagram in `docs/phase0-summary.md`, section "How the code is laid out".
+2. `login_investigator/tools.py`: scroll past the three `@tool` functions (from line 52).
+3. `login_investigator/agent.py`: the system prompt (line 38), then `create_agent` (line 138).
+
+**Say:** "The code has two layers. The screens in the app folder only display. All the logic is in
+the core, plain Python, and a test fails if the core ever imports Streamlit. The agent's three tools
+are thin wrappers: each one calls the same function a dashboard screen uses, so a chart and an
+answer cannot disagree. Every result carries a note that its values are untrusted data. The agent is a few
+lines: a prompt template with today's date, the model, the tools, and SQLite memory."
+
+## 5. The evals (3:20 to 3:50)
 
 **Show:** `evals/results/summary.md` in the repo.
 
@@ -49,7 +64,7 @@ gold answers, scored by code, each run three times. The target was set before th
 percent overall and 100 percent on security. The baseline scored 63 percent. After three rounds of
 prompt fixes, the final run scored 98 percent, with security at 100."
 
-## 5. How Claude Code was used (3:40 to 4:30)
+## 6. How Claude Code was used (3:50 to 4:30)
 
 **Show:** `PROGRESS.md`, then `docs/prompt-log.md`, then `docs/bug-log.md`.
 

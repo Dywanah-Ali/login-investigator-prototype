@@ -37,6 +37,55 @@ Because I planted the attacks, I already know the right answers. That is what ma
 
 The dashboard screens and two of the agent's three tools call the same core functions, so a chart and an agent answer can never disagree.
 
+### How the code is laid out
+
+_Added after the build (Phase 7), to show how the plan above turned into code._
+
+The repo has two layers. The screens in `app/` only display results. All the logic lives in the core,
+`login_investigator/`, which never imports Streamlit (a test enforces this). That is why the agent's
+tools and the dashboard can share the same functions.
+
+```text
+                           Analyst's browser
+                                   |
+                                   v
++----------------------------------------------------------------------------+
+| app/  Streamlit screens: they only display what the core returns           |
+|                                                                            |
+|   main.py      navigation and page width                                   |
+|   shared.py    cached log and findings, header, the shared filters         |
+|   charts.py    Plotly figures for the Overview                             |
+|   screens/     overview.py  alerts.py  log_explorer.py  investigator.py    |
++-------------+-------------------------------------------+------------------+
+              |  the three dashboard screens call          |  the Investigator
+              v                                            v  uses the AGENT column
++----------------------------------------------------------------------------+
+| login_investigator/  the core: plain Python, never imports Streamlit       |
+|                                                                            |
+|   DATA                DETECTION AND SEARCH     AGENT                       |
+|   generator.py        rules.py   four rules    agent.py   prompt, model,   |
+|     writes the CSV    search.py  filters         create_agent, the report  |
+|   loader.py           stats.py   counts        investigations.py  memory   |
+|     checks every row       ^                   reputation.py   IP lookups  |
+|                            |                   report_pdf.py   the PDF     |
+|                            +------------------ tools.py   three read-only  |
+|                     the tools call the same      tools                     |
+|                     functions as the screens   tool_views.py   plain words |
++----------------------------------------------------------------------------+
+          |                         |                      |             |
+          v                         v                      v             v
+   data/logins.csv         data/ip_reputation/     memory/*.sqlite   the internet,
+   synthetic log, made     saved AbuseIPDB         past cases,       over HTTPS:
+   by generator.py         answers                 git-ignored       OpenRouter
+                                                                     (gpt-4o-mini)
+                                                                     and AbuseIPDB
+
+Beside the app:
+   tests/   290 pytest tests: rules, tools, screens, PDF, grader, core boundary
+   evals/   19 questions with gold answers, a code-only grader, and a runner
+            that asks the real agent each question three times
+```
+
 ## How I will know it works
 
 An AI agent can give a wrong answer from flawless code, so code review alone cannot prove it. I prove it with an eval set instead.

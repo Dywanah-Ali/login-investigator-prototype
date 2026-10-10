@@ -793,3 +793,15 @@ script, then the author's review, the history rewrite and the first push.
 phase starters and the strategic ones. The full log moved to `docs/prompt-log-full.md`, so the bug
 log's references still resolve. The author's name in P-006 is redacted.
 **Next:** the history rewrite renames the commit author to the GitHub handle; then the video script.
+
+### P-050 · 2026-10-10 · Phase 7 Deliverables (code tour and diagram)
+
+**Prompt:**
+> we need part of the video script to go through the code in a high-level. and we need to build an architicture diagram how the code is setup, we need it in ASCII and add it to the phase0-summary.md in the right spot
+
+**Purpose:** show reviewers how the code is organised, in the video and in the docs.
+**Result:** an ASCII diagram of the two layers (`app/` screens over the `login_investigator/` core),
+the files each layer holds, and what leaves the machine. Added to `docs/phase0-summary.md` under "How
+it fits together", marked as written after the build, and to the Google Doc. The video script gained
+a 40-second code tour; the other parts were tightened to keep the total near 4.5 minutes.
+**Next:** the author records the video.
