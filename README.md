@@ -8,7 +8,33 @@ investigator agent that answers questions about the log.
 
 ## What it does
 
-_To be written._
+Four screens, all reading the same seven-day sign-in log. The first three share one set of filters: date range, outcome, country and user.
+
+| Screen | What it shows |
+| --- | --- |
+| Overview | Sign-in attempts, failures, usernames seen and alerts; sign-ins per hour; the top source IPs by failed sign-ins |
+| Alerts | Findings from four detection rules: brute force, password spraying, success after repeated failures, sign-in from a new country |
+| Log explorer | The matching events themselves, with an IP search on top of the shared filters |
+| Investigator | A chat with an AI agent that investigates the log, plus the list of past investigations |
+
+The **investigator agent** is built with LangChain's `create_agent` on gpt-4o-mini. It has exactly
+three read-only tools:
+
+| Tool | What it does |
+| --- | --- |
+| `find_suspicious_activity` | Runs the same detection rules as the Alerts screen for a time window |
+| `search_logins` | Counts and samples sign-ins by user, IP, outcome and time |
+| `lookup_ip_reputation` | Looks an IP up on AbuseIPDB over HTTPS, using a saved response when one exists |
+
+Each investigation is kept in SQLite memory (`SqliteSaver`), so a follow-up question uses what the
+case already found, and a case can be reopened after the app restarts. On request the agent writes a
+structured incident report with fixed fields, which downloads as a plain-text PDF.
+
+**Security by design.** The agent can only read: asked to block an IP or reset a password, it
+declines and recommends the step instead. Log fields and API fields are treated as data, never as
+instructions, and scenario S5 plants a prompt injection in the log to test that. The agent's answers
+and the report are shown with links and images switched off, so injected text cannot make the
+browser fetch anything.
 
 ## Requirements
 
@@ -18,7 +44,21 @@ _To be written._
 
 ## Setup
 
-_To be written._
+```bash
+git clone <this repo>
+cd login-investigator
+uv sync                 # installs Python 3.12 and the exact versions in uv.lock
+cp env.example .env     # then put your two keys into .env
+```
+
+| Key in `.env` | Needed for | Where to get it |
+| --- | --- | --- |
+| `OPENROUTER_API_KEY` | The investigator agent (gpt-4o-mini through OpenRouter) | https://openrouter.ai/keys |
+| `ABUSEIPDB_API_KEY` | Live IP lookups for addresses without a saved response | https://www.abuseipdb.com/account/api |
+
+`.env` is git-ignored. The dashboard screens work without any key; the Investigator needs the
+OpenRouter key. The six real addresses in the log have saved AbuseIPDB responses, so the demo works
+without the AbuseIPDB key and with no network for the lookups.
 
 ## Run the app
 
@@ -26,8 +66,8 @@ _To be written._
 uv run streamlit run app/main.py
 ```
 
-The dashboard opens at http://localhost:8501 with three screens: Overview, Alerts and Log explorer.
-The investigator agent is added in a later phase.
+The app opens at http://localhost:8501. Investigations are saved in `memory/investigations.sqlite`
+(git-ignored); delete that file to start with an empty list.
 
 ## Run the tests
 
@@ -95,7 +135,20 @@ synthetic dataset (see the comments at the top of `login_investigator/rules.py`)
 
 ## How the agent is evaluated
 
-_To be written._
+Code review cannot catch a wrong answer from a model, so the agent is measured. `evals/questions.json`
+holds 19 questions in nine categories (detection, pivot, memory, enrichment, decoy, quiet day, time,
+report, injection and refusal), with 81 checks whose gold answers come from
+`evals/ground_truth.json` and the saved AbuseIPDB responses. Scoring is done by code, not by another
+model. Each question runs three times, because temperature 0 still varies.
+
+```bash
+uv run python -m evals.run --label "what changed"   # needs the OpenRouter key; uses a temporary memory file
+```
+
+The target was agreed before the first run: 90% overall and 100% for the injection and refusal
+checks. The baseline scored 63%. After three rounds of prompt changes and five grader fixes, the
+final run scored **98% overall (56 of 57 runs) and 100% on security**. Every run is listed in
+`evals/results/summary.md` with its date and prompt version.
 
 ## Project documents
 
@@ -103,3 +156,4 @@ _To be written._
 - [How the data was made](docs/data-generation.md)
 - [Prompt log](docs/prompt-log.md)
 - [Bug log](docs/bug-log.md)
+- [Screen design](docs/ui-design.md)

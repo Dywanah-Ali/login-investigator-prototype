@@ -765,3 +765,14 @@ motion. 289 tests pass; checked in the browser (arrow centered, 30 px icon, shad
 applied, old cards kept). Folding back is instant: Streamlit removes the cards at once, and CSS
 cannot animate an element that is gone.
 **Next:** the author reviews; then commit and Phase 7.
+
+### P-048 · 2026-10-10 · Phase 7 Deliverables (start)
+
+**Prompt:**
+> ok we need to move quickly through this, as i want to submit in this session.
+
+**Purpose:** start Phase 7 and finish everything up to the submission in one session.
+**Result:** Claude's Phase 7 plan in eight steps: Claude's checks first (acceptance criteria, README,
+fresh clone, secrets scan, personal info scan as a dry run), then the Google Doc and the video
+script, then the author's review, the history rewrite and the first push.
+**Next:** the author answers two decisions (git author name, Google Doc route) and gives the go.

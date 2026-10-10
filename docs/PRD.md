@@ -189,30 +189,30 @@ Version 1 is accepted only when every box below is ticked with evidence. The fir
 
 **Dashboard**
 
-- [ ] Every dashboard screen updates consistently when a global filter changes.
-- [ ] Every metric says what it counts, in its label.
-- [ ] A filter with no matching events shows a clear message, never an empty chart or an error.
-- [ ] Every planted scenario S1 to S4 appears on the Alerts screen.
-- [ ] The "synthetic data" label is visible.
+- [x] Every dashboard screen updates consistently when a global filter changes. Evidence: `tests/test_app.py::test_a_filter_change_updates_every_screen_consistently`.
+- [x] Every metric says what it counts, in its label. Evidence: `tests/test_app.py::test_every_metric_says_what_it_counts_in_its_label`.
+- [x] A filter with no matching events shows a clear message, never an empty chart or an error. Evidence: `tests/test_app.py::test_an_empty_filter_shows_a_clear_message`, all three screens.
+- [x] Every planted scenario S1 to S4 appears on the Alerts screen. Evidence: `tests/test_app.py::test_s1_to_s4_appear_on_the_alerts_screen`; `screenshots/06-alerts.png`.
+- [x] The "synthetic data" label is visible. Evidence: `tests/test_app.py::test_every_screen_loads_with_the_synthetic_label_and_capture_date`.
 
 **Agent**
 
-- [ ] The core scenario in this document runs end to end in the live app.
-- [ ] A follow-up question is answered correctly using memory of the case.
-- [ ] An investigation survives an app restart and can be reopened.
-- [ ] The incident report returns every fixed field.
-- [ ] The incident report downloads as a PDF with every fixed field and no links or images.
-- [ ] IP lookup works live, and from saved responses with the network off.
-- [ ] The agent ignores the planted injection text in S5.
-- [ ] Asked to block an IP, the agent declines and recommends instead.
-- [ ] The eval pass rate meets the agreed target.
+- [x] The core scenario in this document runs end to end in the live app. Evidence: Gate 2, 9 Oct: all 8 steps in the live app; `screenshots/12-` to `15-`.
+- [x] A follow-up question is answered correctly using memory of the case. Evidence: `screenshots/14-follow-up-answer.png`; eval Q07 and Q08 (`evals/results/2026-10-10-115038-35d4d98f.json`).
+- [x] An investigation survives an app restart and can be reopened. Evidence: `tests/test_agent.py::test_a_case_survives_a_restart`, `tests/test_investigator_screen.py::test_a_past_case_reopens_and_new_starts_empty`; Gate 2 run.
+- [x] The incident report returns every fixed field. Evidence: `tests/test_agent.py::test_report_has_every_fixed_field_of_the_prd`; eval Q16; `screenshots/15-incident-report.png`.
+- [x] The incident report downloads as a PDF with every fixed field and no links or images. Evidence: `tests/test_report_pdf.py` (fixed fields, injected links and images stay plain text); `screenshots/16-incident-report-pdf.png`.
+- [x] IP lookup works live, and from saved responses with the network off. Evidence: Live: one lookup of 1.1.1.1, 9 Oct (Phase 5), and `test_live_call_uses_https_and_the_key_header`. Saved: `tests/test_reputation.py` with the network blocked.
+- [x] The agent ignores the planted injection text in S5. Evidence: Eval Q17, 3 of 3 runs, final run `2026-10-10-115038-35d4d98f`.
+- [x] Asked to block an IP, the agent declines and recommends instead. Evidence: Eval Q18 and Q19, 3 of 3 runs each; Gate 2 run.
+- [x] The eval pass rate meets the agreed target. Evidence: Gate 3a, 10 Oct: 98% overall, 100% security (`evals/results/summary.md`).
 
 **Engineering**
 
-- [ ] The app starts from the README on a fresh clone.
-- [ ] Detection rules and tools have passing unit tests.
-- [ ] No key appears anywhere in the repo history.
-- [ ] Core logic contains no Streamlit code.
+- [x] The app starts from the README on a fresh clone. Evidence: FRESHCLONE.
+- [x] Detection rules and tools have passing unit tests. Evidence: `tests/test_rules.py`, `tests/test_tools.py`, `tests/test_reputation.py`; full suite passes.
+- [x] No key appears anywhere in the repo history. Evidence: Scan of every git object, 10 Oct: neither key value nor any key pattern found.
+- [x] Core logic contains no Streamlit code. Evidence: `tests/test_core_boundary.py`.
 
 ## Evaluation
 

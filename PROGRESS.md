@@ -214,7 +214,7 @@ The author asked for some UI improvements before the video. Agreed conditions:
 
 ## Phase 7 — Deliverables and submission
 
-- [ ] 📸 Process: the prompt that starts this phase, and Claude's plan
+- [x] ~~📸 Process: the prompt that starts this phase, and Claude's plan~~ (`screenshots/20-phase7-plan.png`)
 - [ ] Every acceptance criterion in the PRD ticked with evidence
 - [ ] README complete; the app starts from a fresh clone
 - [ ] Scan the repo history for secrets
