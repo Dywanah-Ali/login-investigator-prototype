@@ -4,6 +4,8 @@ One test per PRD dashboard acceptance criterion, plus the display-safety rules. 
 come from evals/ground_truth.json.
 """
 
+import re
+
 import pytest
 from streamlit.testing.v1 import AppTest
 
@@ -11,7 +13,9 @@ from app import shared
 from login_investigator.search import filter_logins
 
 SCREENS = ("screens/overview.py", "screens/alerts.py", "screens/log_explorer.py")
-UNITS = ("event", "events", "username", "usernames", "IP", "IPs", "finding", "findings")
+# What a tile counts is said in its label; the value is the bare number (UI polish, 10 Oct).
+COUNTED = ("attempts", "events", "usernames", "ips", "alerts")
+BARE_NUMBER = re.compile(r"\d{1,3}(,\d{3})*")
 
 
 def start(screen=SCREENS[0]):
@@ -43,18 +47,19 @@ def test_every_screen_loads_with_the_synthetic_label_and_capture_date(screen):
 
 
 @pytest.mark.parametrize("screen", ("screens/overview.py", "screens/log_explorer.py"))
-def test_every_metric_shows_its_unit(screen):
+def test_every_metric_says_what_it_counts_in_its_label(screen):
     at = start(screen)
     assert at.metric
     for label, value in metrics(at).items():
-        assert value.split()[-1] in UNITS, f"{label}: {value!r} has no unit"
+        assert any(word in label.lower() for word in COUNTED), f"{label!r} names no counted thing"
+        assert BARE_NUMBER.fullmatch(value), f"{label}: {value!r} is not a bare number"
 
 
 def test_overview_counts_match_the_core(log, truth):
     at = start()
     m = metrics(at)
-    assert m["Sign-in attempts"] == f"{truth['row_count']:,} events"
-    assert m["Alerts"] == "5 findings"
+    assert m["Sign-in attempts"] == f"{truth['row_count']:,}"
+    assert m["Alerts"] == "5"
 
 
 def test_s1_to_s4_appear_on_the_alerts_screen(s):
@@ -77,14 +82,14 @@ def test_a_filter_change_updates_every_screen_consistently(log, s):
     expected = len(filter_logins(log, user=user))
     at = start()
     at.selectbox(key=shared.KEY_USER).set_value(user).run()
-    assert metrics(at)["Sign-in attempts"] == f"{expected:,} events"
+    assert metrics(at)["Sign-in attempts"] == f"{expected:,}"
 
     at.switch_page("screens/alerts.py").run()
     table = alert_table(at)
     assert list(table["Rule"]) == ["Sign-in from a new country"]
 
     at.switch_page("screens/log_explorer.py").run()
-    assert metrics(at)["Matching events"] == f"{expected:,} events"
+    assert metrics(at)["Matching events"] == f"{expected:,}"
     assert at.selectbox(key=shared.KEY_USER).value == user  # the filter survived the switch
 
 
@@ -103,7 +108,7 @@ def test_reset_restores_the_whole_log(truth, s):
     at = start()
     at.selectbox(key=shared.KEY_USER).set_value(s["S4"]["user"]).run()
     at.button[0].click().run()
-    assert metrics(at)["Sign-in attempts"] == f"{truth['row_count']:,} events"
+    assert metrics(at)["Sign-in attempts"] == f"{truth['row_count']:,}"
 
 
 def test_open_in_log_explorer_points_at_the_alert(log, s):
@@ -120,7 +125,7 @@ def test_open_in_log_explorer_points_at_the_alert(log, s):
     assert at.title[0].value == "Log explorer"
     expected = len(filter_logins(log, ip=s["S1"]["attacker_ip"], start=day,
                                  end=f"{day}T23:59:59Z"))
-    assert metrics(at)["Matching events"] == f"{expected:,} events"
+    assert metrics(at)["Matching events"] == f"{expected:,}"
 
 
 def test_an_invalid_ip_is_refused_without_echoing_it():
@@ -149,9 +154,11 @@ def test_counts_use_the_right_singular_or_plural():
     assert shared.count(0, "finding") == "0 findings"
 
 
-def test_one_alert_shows_singular_units(log, s):
+def test_one_matching_event_shows_ones(log, s):
     at = start("screens/log_explorer.py")
     at.text_input(key=shared.KEY_IP).set_value(s["S4"]["ip"]).run()
     m = metrics(at)
-    assert m["Matching events"] == "1 event"
-    assert m["Distinct IPs"] == "1 IP"
+    assert m["Matching events"] == "1"
+    assert m["Distinct IPs"] == "1"
+    assert set(m) == {"Matching events", "Successful events", "Failed events", "Usernames seen",
+                      "Distinct IPs"}

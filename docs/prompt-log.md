@@ -669,3 +669,99 @@ not rest on re-scored answers.
 is Q08 run 1, the known sprayer mix-up (B-021). Gate 3a passed. Claude ticked the step and the
 gate in PROGRESS.md and committed Phase 6.
 **Next:** Phase 7, deliverables. Clear the memory file before recording the video.
+
+### P-043 · 2026-10-10 · after Phase 6
+
+**Prompt:**
+> i will do it on a fresh session. but i am thinking of something. some UI improvemnts before phase 7. do u agree ?
+
+(Followed by "yes" to adding the step to PROGRESS.md.)
+
+**Purpose:** decide whether to polish the UI before the deliverables.
+**Result:** Claude agreed, with three conditions: screen-only changes so the eval stays valid,
+agree the list before any code, and a time box of 2 to 3 hours, because the deadline is Sunday
+21:59 and Phase 7 needs most of Sunday. Added a "UI polish" step with handoff notes to PROGRESS.md.
+**Next:** a fresh session starts with the author's list of improvements.
+
+### P-044 · 2026-10-10 · UI polish (sorting the list)
+
+**Prompt:**
+> okay, it is not exactly a list. I will give it to you one by one. I will go around the application interface itself on the browser. I noticed some points of improvement before, so I will revisit those to remember them. I prefer to have it one by one, one improvement at a time, so we settle them one by one. After we settle them all in terms of decisions about what we're going to do about them, then you can start on the code to do the improvements. Do you agree?
+
+Then one point per prompt, each with a screenshot of the live app:
+
+> first one on the overview page: I believe the keywords, events, usernames, and findings are not needed here. The counter is enough, right? We don't need those keywords next to the counter for each one. Do you agree? I think it's simple.
+
+> again, this exists on every page: the three dots in the upper-right corner. We have the mode for the stream (light, dark, or system), and it has print and record screen. First of all, I don't want it to be like that. I want light, dark, or system to be directly on the page, not through the three dots, right? I want print, record screen, and made with streamlet to be removed. I believe there is a standard here: a small standard for how to make them on the page without those three dots, right? Please confirm your understanding.
+
+> is important for me, and I don't like how the app takes up the whole viewport of the browser page. I wanted to have this standard: a left and right gap. Is there a standard for it, or a best practice in terms of percentage? I want it to be that way. I don't want it to take the full width of the viewport like that. Is that possible?
+
+> yeah, this is the most important one. This is the investigator page, the chat page. [...] I believe, overall, this is an agent chat window that is presented to a user, like a standard chat for an agent. I believe we can do better in terms of the UI of it, so please check the standards. For best practice, I don't want all the bells and whistles because I believe big parts of them are not applicable here. We will not attach files, choose models, or pick models and all this stuff. I still believe that there are some areas for improvement, so if you can do a little research about what is applicable
+
+**Purpose:** settle every UI improvement before any code, one at a time.
+**Result:** Claude checked each point against the installed Streamlit 1.65 before answering.
+1. Metric tiles: the bare number, with what it counts in the label (Overview and Log explorer). The
+   PRD criterion "Every metric shows its unit" became "Every metric says what it counts, in its
+   label", with the author's approval and a decisions log row.
+2. Theme switch on the page: dropped. Streamlit has no supported way to set the theme from the page
+   (`st.context.theme` is read-only); the menu stays as it is.
+3. A maximum content width of 1400 px, centered. Claude's advice: the usual practice is a maximum
+   width, not a percentage.
+4. Investigator: Claude researched chat UI guidance (Nielsen Norman Group, Google PAIR, Microsoft
+   HAX) and proposed eight items. Five agreed: a narrower chat column, a scope line in the empty
+   state, an AI note by the input, a locked input while the agent answers, and a progress line in
+   plain words. The author dropped the rest for good (Stop button, feedback, copy, retry, jump to
+   latest). Claude flagged a suspected bug to reproduce first: a message sent mid-answer may leave a
+   tool call with no result in the case's memory.
+All decisions are in PROGRESS.md and `docs/ui-design.md`.
+**Next:** build the agreed items, starting with reproducing the suspected bug.
+**Build (same day):** the author's earlier go ("then you can start on the code") covered it. The
+suspected bug was reproduced outside the browser and turned out smaller than feared (B-025). The
+browser check found two more (B-026: the lock missed button questions; B-027: the running app
+kept an old module). 286 tests pass; no file under `login_investigator/` changed, so the eval
+result of Gate 3a still holds.
+
+### P-045 · 2026-10-10 · UI polish (width correction)
+
+**Prompt:**
+> ok most of the improvements are done correctly. BUT the 1st one regarding the the width in the viewport. i meant the whole page including the left pane. so the whole app including that pane be centered with the standard gap left and right
+
+**Purpose:** correct item 3: center the whole app, sidebar included, not only the main area.
+**Result:** Claude had read "the app" as the content area. Claude first tried the change live in the
+browser (injected CSS, no code) to see how the sidebar, the header and the pinned chat input behave.
+Everything moved together, but the content and the gap shared one colour, so the frame's right edge
+was invisible; a faint edge line fixed that. Then built: the whole app at most 1700 px (300 px
+sidebar plus the agreed 1400 px of content), centered, in `app/shared.py`. 286 tests pass; checked
+in the browser after a restart.
+**Next:** the author reviews; then commit and Phase 7.
+
+### P-046 · 2026-10-10 · UI polish (past investigations box)
+
+**Prompt:**
+> looks way better claude thanks. i just notices one more improvement we might need to build. the "posyt investigations" column in the left pane. it piles up investigation cards overtime, which is ok for a prototype. but if we can keep the displayed ones to 3 in a container the holds them all, with an arrow to expand if the user wants to. i hope u understand what i mean. and i want to look good
+
+Then, correcting Claude's first proposal (the newest three, plus a fold-out section for the rest):
+
+> no claude. i want to be one container with the most recent 3, with arrow near the bottom border that expands, maybe expands to max of more 3 at a time with ever click. understand ?
+
+**Purpose:** stop the list of past investigations from growing down the sidebar.
+**Result:** one bordered box with the newest three cases; a "Show 3 more" arrow at its bottom edge
+adds up to three per click, and "Show fewer" folds it back. If the open case is an older one, the
+box grows to include it. Built with Streamlit's own bordered container and a tertiary button, no
+CSS. 289 tests pass (3 new); checked in the browser.
+**Next:** the author reviews; then commit and Phase 7.
+
+### P-047 · 2026-10-10 · UI polish (past investigations box, refined)
+
+**Prompt:**
+> it is better the concept in general is implemented, but not exactly how i want it.  for example, keep only the arrow no need to the text next to it, and make it a lettile bet bigger and in the middle horozintally, the expanding of the container should be smooth with a nice bit animation in temrs of speed. so not sudden expainsion. and for that overall container to have a bit of a shadow so it stands out. understand ?
+
+**Purpose:** make the past investigations box look finished.
+**Result:** the arrow has no text (its tooltip says "Show 3 more" or "Show fewer"), is larger and
+centered. The box has a soft shadow. New cards slide open over 0.32 s; cards already shown are not
+redrawn, so only the new ones move. Styled through Streamlit's supported `st-key-<key>` class, so
+only this box is affected; the animation is switched off for users whose system asks for reduced
+motion. 289 tests pass; checked in the browser (arrow centered, 30 px icon, shadow, animation rule
+applied, old cards kept). Folding back is instant: Streamlit removes the cards at once, and CSS
+cannot animate an element that is gone.
+**Next:** the author reviews; then commit and Phase 7.

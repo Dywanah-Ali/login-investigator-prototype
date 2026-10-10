@@ -27,6 +27,7 @@ investigator = st.Page("screens/investigator.py", title="Investigator",
 DASHBOARD = (overview, alerts, explorer)
 
 page = st.navigation([*DASHBOARD, investigator])
+shared.max_width(shared.CHAT_WIDTH if page == investigator else shared.PAGE_WIDTH)
 if st.session_state.pop(shared.KEY_GOTO_EXPLORER, False):
     st.switch_page(explorer)  # set by "Open in Log explorer" on the Alerts screen
 if page in DASHBOARD:

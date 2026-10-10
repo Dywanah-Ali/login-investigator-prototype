@@ -10,6 +10,7 @@ from streamlit.testing.v1 import AppTest
 
 from login_investigator import agent as investigator
 from login_investigator import investigations
+from login_investigator.tools import TOOLS
 from tests.test_agent import REPORT, FakeModel, tool_call
 
 PAGE = "screens/investigator.py"
@@ -175,3 +176,95 @@ def test_each_report_card_offers_its_own_pdf(fake):
     ids = [d.proto.id for d in downloads(at)]
     assert len(ids) == 2 and len(set(ids)) == 2
     assert ids[0].endswith("_1") and ids[1].endswith("_2")  # the number in the file name
+
+
+# --- UI polish, 10 Oct ---------------------------------------------------------------------------
+
+def test_an_empty_case_says_what_the_agent_can_and_cannot_do(fake):
+    at = open_page()
+    scope = [m.value for m in at.markdown if "cannot block, change or delete" in m.value]
+    assert scope
+
+
+def test_the_ai_note_stays_by_the_input(fake):
+    at = open_page()
+    assert any("AI-generated" in c.value for c in at.caption)
+    at = click(at, "Anything suspicious last night?")
+    assert any("AI-generated" in c.value for c in at.caption)
+
+
+def test_the_input_is_locked_while_the_agent_answers(fake):
+    at = open_page()
+    proto = at.chat_input[0].proto
+    assert proto.submit_mode == proto.SUBMIT_MODE_DISABLE
+
+
+def test_progress_is_in_plain_words_for_every_tool():
+    import ast
+    from pathlib import Path
+
+    source = Path(__file__).parent.parent / "app" / "screens" / "investigator.py"
+    tree = ast.parse(source.read_text())
+    # Read from the source: importing the screen would run the page.
+    [progress] = [ast.literal_eval(node.value) for node in tree.body if isinstance(node, ast.Assign)
+                  and getattr(node.targets[0], "id", "") == "PROGRESS"]
+    assert set(progress) == {tool.name for tool in TOOLS}
+    assert not any("_" in words for words in progress.values())
+
+
+def test_a_failed_answer_shows_the_error_and_leaves_the_input_open(fake, monkeypatch):
+    def broken(*args, **kwargs):
+        raise ConnectionError("model unreachable")
+        yield  # a generator, like the real one
+
+    monkeypatch.setattr(investigator, "ask", broken)
+    at = click(open_page(), "Anything suspicious last night?")
+    assert any("The agent stopped before it finished." in e.value for e in at.error)
+    assert "model unreachable" not in "\n".join(e.value for e in at.error)
+    assert not at.chat_input[0].disabled
+
+
+def case_buttons(at):
+    return [b for b in at.sidebar.button if b.key and b.key.startswith("case_")]
+
+
+def arrow(at, key, tooltip):
+    """The arrow has no text; its tooltip says what it does."""
+    [button] = [b for b in at.sidebar.button if b.key == key]
+    assert button.label == "" and button.help == tooltip
+    button.click().run()
+    assert not at.exception, [e.value for e in at.exception]
+
+
+def test_past_cases_show_three_then_three_more_per_click(fake):
+    for number in range(7):
+        investigations.start(f"Question {number}", investigations.MEMORY_PATH)
+    at = open_page()
+    assert len(case_buttons(at)) == 3
+    assert case_buttons(at)[0].label.startswith("Question 6")  # newest first
+    arrow(at, "cases_more", "Show 3 more")
+    assert len(case_buttons(at)) == 6
+    arrow(at, "cases_more", "Show 1 more")
+    assert len(case_buttons(at)) == 7
+    arrow(at, "cases_fewer", "Show fewer")
+    assert len(case_buttons(at)) == 3
+
+
+def test_an_open_older_case_is_never_hidden(fake):
+    oldest = investigations.start("The oldest question", investigations.MEMORY_PATH)
+    for number in range(4):
+        investigations.start(f"Question {number}", investigations.MEMORY_PATH)
+    at = AppTest.from_file("../app/main.py", default_timeout=60)
+    at.session_state["investigator_case"] = oldest.thread_id
+    at.run()
+    at.switch_page(PAGE).run()
+    assert not at.exception, [e.value for e in at.exception]
+    assert any(b.label.startswith("The oldest question") for b in case_buttons(at))
+
+
+def test_three_cases_or_fewer_need_no_arrow(fake):
+    for number in range(3):
+        investigations.start(f"Question {number}", investigations.MEMORY_PATH)
+    at = open_page()
+    assert len(case_buttons(at)) == 3
+    assert not [b for b in at.sidebar.button if b.key in ("cases_more", "cases_fewer")]

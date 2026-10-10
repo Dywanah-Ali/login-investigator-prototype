@@ -20,12 +20,12 @@ alerts = findings_matching(shared.all_findings(), rows)
 failed_share = summary.failures / summary.total
 
 tiles = st.columns(4)
-tiles[0].metric("Sign-in attempts", shared.count(summary.total, "event"))
-tiles[1].metric("Failed attempts", shared.count(summary.failures, "event"))
+tiles[0].metric("Sign-in attempts", f"{summary.total:,}")
+tiles[1].metric("Failed attempts", f"{summary.failures:,}")
 tiles[1].caption(f"{failed_share:.1%} of attempts")
-tiles[2].metric("Usernames seen", shared.count(summary.distinct_users, "username"),
+tiles[2].metric("Usernames seen", f"{summary.distinct_users:,}",
                 help="Includes usernames that do not exist, such as ones an attacker guessed.")
-tiles[3].metric("Alerts", shared.count(len(alerts), "finding"),
+tiles[3].metric("Alerts", f"{len(alerts):,}",
                 help="Findings from the detection rules with at least one event in this view. "
                      "Details on the Alerts screen.")
 

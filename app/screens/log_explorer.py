@@ -26,11 +26,11 @@ if rows.empty:
 
 summary = summarize(rows)
 tiles = st.columns(5)
-tiles[0].metric("Matching events", shared.count(summary.total, "event"))
-tiles[1].metric("Successful", shared.count(summary.successes, "event"))
-tiles[2].metric("Failed", shared.count(summary.failures, "event"))
-tiles[3].metric("Usernames seen", shared.count(summary.distinct_users, "username"))
-tiles[4].metric("Distinct IPs", shared.count(summary.distinct_ips, "IP"))
+tiles[0].metric("Matching events", f"{summary.total:,}")
+tiles[1].metric("Successful events", f"{summary.successes:,}")
+tiles[2].metric("Failed events", f"{summary.failures:,}")
+tiles[3].metric("Usernames seen", f"{summary.distinct_users:,}")
+tiles[4].metric("Distinct IPs", f"{summary.distinct_ips:,}")
 
 # Every matching row, not a sample: the 20-row cap protects the agent's context, but a person
 # can scroll. Log fields appear only inside the table.

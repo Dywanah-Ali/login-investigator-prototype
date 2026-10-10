@@ -357,3 +357,45 @@ IP safe, so they are not the quiet failure the check exists to catch.
 **Lesson:** write a check from the meaning ("treats the IP as hostile"), then test it against
 several honest ways of saying it, not only the one first imagined.
 **Found by:** Claude, reading the failed answers. Related prompt: P-040.
+
+### B-025 · 2026-10-10 · UI polish
+
+**Symptom:** suspected during the UI polish review. The chat input stays open while the agent
+answers, and Streamlit stops the running script when a new message is sent. Claude suspected that a
+run cut off in the middle of a tool call would leave a tool call with no result in the case's
+memory, so the next question in that case would fail.
+**Reproduced outside the browser** (closing the answer stream the way Streamlit's stop does, then
+asking a follow-up in the same case, two cut-off points): the suspected failure is **not real**.
+The unfinished step is never saved, and the follow-up is answered normally. What is real is
+smaller: the cut-off question stays in the case with no answer ("No answer was given."), and the
+follow-up is answered without it.
+**Cause:** `st.chat_input` used the default `submit_mode="submit"`, which accepts a new message
+while the previous one is still being answered.
+**Fix:** `submit_mode="disable"`: the input is locked until the answer is finished (item 4d of the
+UI polish list).
+**Lesson:** a suspicion is not a finding. Reproducing it first turned a feared crash into a small
+display issue, and the fix stayed the same size.
+**Found by:** Claude, while checking chat UI guidance against the screen. Related prompt: P-044.
+
+### B-026 · 2026-10-10 · UI polish
+
+**Symptom:** found while building B-025's fix, in Claude's browser check. After a starter button was
+clicked, the chat input stayed open while the agent answered.
+**Cause:** `submit_mode="disable"` locks the input only after a message typed into it. The starter
+and report buttons send their question another way.
+**Fix:** the input is also `disabled` while a button's question is waiting. A failure is now kept
+in the session and shown after the page redraws, so the input can never stay locked after an error.
+New test: a failed answer shows its error and leaves the input open.
+**Lesson:** a framework setting covers the path it names, not every path to the same action. Check
+each way in, here typed questions and button questions.
+**Found by:** Claude, in the browser. Related prompt: P-044.
+
+### B-027 · 2026-10-10 · UI polish
+
+**Symptom:** after the width change, the running app showed "module 'app.shared' has no attribute
+'max_width'".
+**Cause:** the running app reloaded `app/main.py` but kept its old copy of `app/shared.py`. B-016
+said this for `login_investigator/`; it holds for the `app/` modules too.
+**Fix:** restart the app. No code change.
+**Lesson:** after any change outside the page files, restart the app before checking it.
+**Found by:** Claude, in the browser.

@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
 **Current phase:** 7 — Deliverables and submission
-**Current step:** Phase 7, first step (Gate 3a passed 10 Oct; clear the memory file before the video)
+**Current step:** Phase 7, first step: the prompt that starts the phase, and Claude's plan. Read the handoff notes above Phase 7
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -145,6 +145,72 @@ Judgement slips seen on the way are in B-013, for the Phase 6 evals.
 
 **Gate 3a:** 90% overall, and 100% for the injection and refusal checks. ✅ **Passed 10 Oct:** fresh run
 `evals/results/2026-10-10-115038-35d4d98f.json`, 56 of 57 runs (98%), security 15 of 15 (100%).
+
+## UI polish (added 10 Oct, before Phase 7) ✅
+
+The author asked for some UI improvements before the video. Agreed conditions:
+
+- [x] ~~⏸️ The author lists the improvements; Claude sorts them into "quick", "worth it" and "after
+  submission". No UI code until the author agrees the list (standing rule: pause before UI design).~~
+  (list closed by the author, 10 Oct; prompt log P-044)
+  Agreed so far (one at a time, the author's way of working; code starts only when all are settled):
+  1. **Quick.** Metric tiles show the bare number, with what it counts in the label. Overview and
+     Log explorer ("Successful" → "Successful events", "Failed" → "Failed events"). PRD criterion
+     reworded, decisions log row added, `docs/ui-design.md` rule updated; `tests/test_app.py` to follow.
+  2. **Dropped.** Theme switch on the page instead of the three-dot menu, and removing Print, Record
+     screen and "Made with Streamlit". Streamlit 1.65 has no supported way to set the theme from the
+     page (`st.context.theme` is read-only). The menu stays as it is (the author's ruling).
+  3. **Quick.** The whole app, sidebar included, is centered at most 1700 px wide, with a faint line
+     on each edge; the content inside stays at most 1400 px. Keep `layout="wide"`; fixed CSS in
+     `app/shared.py`. It fails safe: if Streamlit renames its containers, the app goes back to full
+     width. (Corrected by the author after the first build, 10 Oct: they meant the whole app, not
+     only the main area. The edge line is Claude's addition, so the frame shows.)
+  4. Investigator chat, checked against chat UI guidance (NN/g, Google PAIR, Microsoft HAX):
+     - 4a **Quick.** Chat column about 860 px wide, centered, on the Investigator only (same CSS method as 3).
+     - 4b **Quick.** Scope line in the empty state: what the agent can do, and that it cannot block,
+       change or delete anything.
+     - 4c **Quick.** A permanent short note near the input: answers are AI-generated and can be wrong;
+       check them against the tool calls under each answer.
+     - 4d **Worth it.** Lock the input while the agent answers (`st.chat_input(submit_mode="disable")`).
+       First reproduce the suspected bug: a message sent mid-answer cuts off the run, and may leave a
+       tool call with no result in the case's memory. Log it in `docs/bug-log.md` if real.
+     - 4e **Quick.** Progress line in plain words instead of the internal tool name.
+     - **Dropped** (the author's ruling): Stop button, feedback thumbs, copy answer, retry button,
+       "jump to latest".
+  5. **Added after the first build** (the author's request): past investigations sit in one bordered
+     box showing the newest three; an arrow on its bottom edge shows three more per click, then
+     "Show fewer". An open older case is always shown. Built and checked in the browser; 3 tests.
+     Refined (the author's review): arrow only, bigger and centered, with a tooltip; a soft shadow on
+     the box; new cards slide open over 0.32 s instead of appearing at once (off for users who ask
+     their system for reduced motion).
+- [x] ~~Build the agreed items, each checked in the browser~~ (Claude's browser run, 10 Oct: tiles show
+  bare numbers; main area 1,400 px on the dashboard screens and 860 px on the Investigator; scope line
+  and AI note shown; progress lines "Checking the detection rules…", "Looking up IP reputation…",
+  "Searching the sign-in log…"; input locked during a starter question and a typed one, open again after)
+  - [ ] 👤 📸 Screenshots of the new screens: Overview and the Investigator (none needed for the
+    past investigations box: the author's ruling, 10 Oct)
+- [x] ~~All tests pass, and the app restarted and checked once end to end~~ (286 tests pass; app restarted;
+  all four screens loaded, two live questions answered in one case)
+
+**Handoff notes (read before starting):**
+- Screen-only changes. The eval proves the agent's prompt, model and tools (Gate 3a, prompt version
+  `35d4d98f`). Any change to `login_investigator/agent.py`, `tools.py` or the report prompt means a
+  new full eval run: `uv run python -m evals.run --label "<what changed>"`. `evals/run.py` prints the
+  prompt version; if it is still `35d4d98f`, the agent is unchanged.
+- Time box: about 2 to 3 hours. The deadline is Sunday 11 October, 21:59 local, and Phase 7 needs
+  most of Sunday (Google Doc, video, removing personal info from the files and git history).
+- Restart the app after any change to `login_investigator/` or `app/shared.py` (B-016, B-027).
+
+**UI polish result (10 Oct):** reviewed and accepted by the author. 289 tests pass. Agent unchanged
+(no file under `login_investigator/` changed), so Gate 3a still holds. Bugs B-025 to B-027.
+
+**Handoff notes for Phase 7 (read before starting):**
+- The screens changed after screenshots 05 to 07 and 12 to 15 were taken. Decide with the author
+  which ones to retake for the Google Doc and the video.
+- Clear the memory file before recording the video: it holds Claude's test cases (B-025 to B-027
+  checks added more).
+- Restart the app before recording, and after any change outside the page files (B-016, B-027).
+- PRD acceptance criterion reworded on 10 Oct: "Every metric says what it counts, in its label".
 
 ## Phase 7 — Deliverables and submission
 

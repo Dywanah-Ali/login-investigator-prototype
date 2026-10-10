@@ -142,6 +142,31 @@ def for_display(rows: pd.DataFrame) -> pd.DataFrame:
     return shown.reset_index(drop=True)
 
 
+APP_WIDTH = 1700  # px; the whole app, sidebar included, centered on wide screens (UI polish)
+PAGE_WIDTH = 1400  # px; dashboards keep charts readable; 1700 = this plus the 300 px sidebar
+CHAT_WIDTH = 860  # px; chat is read line by line, so its column is narrower
+
+
+def max_width(px: int) -> None:
+    """Center the whole app, sidebar included, at APP_WIDTH, with a faint line on each edge so
+    the frame shows. Inside it, cap the content and the bottom bar (the chat input) at px.
+
+    Streamlit has no setting for this, so it is fixed CSS on Streamlit's own container names. It
+    fails safe: if a later Streamlit renames them, the app goes back to full width.
+    The rules are constants written here, never log data or model output.
+    """
+    edge = "1px solid rgba(128, 128, 128, 0.25)"  # visible in light and dark mode
+    st.html(
+        "<style>"
+        '[data-testid="stAppViewContainer"] '
+        f"{{max-width: {APP_WIDTH}px; left: 0; right: 0; margin: 0 auto; "
+        f"border-left: {edge}; border-right: {edge};}}"
+        '[data-testid="stMainBlockContainer"], [data-testid="stBottomBlockContainer"] '
+        f"{{max-width: {int(px)}px; margin-left: auto; margin-right: auto;}}"
+        "</style>"
+    )
+
+
 def count(n: int, unit: str) -> str:
     """A number with its unit, singular or plural: "1 event", "1,856 events", "1 IP"."""
     return f"{n:,} {unit if n == 1 else unit + 's'}"

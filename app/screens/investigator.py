@@ -16,14 +16,22 @@ from app import shared
 from login_investigator import agent as investigator
 from login_investigator import investigations, report_pdf
 from login_investigator.tool_views import describe
-from login_investigator.tools import TOOLS
 
 STARTERS = (
     "Anything suspicious last night?",
     "Was any account compromised this week?",
     "Which IP addresses attacked us, and how bad are they?",
 )
-TOOL_NAMES = {tool.name for tool in TOOLS}
+# What the agent is doing, in plain words, while it answers. The tool's own name read like code.
+PROGRESS = {
+    "find_suspicious_activity": "Checking the detection rules…",
+    "search_logins": "Searching the sign-in log…",
+    "lookup_ip_reputation": "Looking up IP reputation…",
+}
+SCOPE = ("I search the sign-in log, run the detection rules and look up IP reputation, and I can "
+         "write an incident report. I only read: I cannot block, change or delete anything.")
+AI_NOTE = ("Answers are AI-generated and can be wrong. Check them against the tool calls under "
+           "each answer.")
 SEVERITY = {  # label and badge colour; the report's severity is checked against this list
     "none": ("No incident", "green"),
     "low": ("Low severity", "blue"),
@@ -37,6 +45,31 @@ KEY_MODEL = "investigator_model"
 KEY_CASE = "investigator_case"  # thread id of the open case; None for a new, empty case
 KEY_ASK = "investigator_ask"  # a question waiting to be asked, from a starter button
 KEY_REPORT = "investigator_report"  # the report request, set when the report button is pressed
+KEY_ERROR = "investigator_error"  # a failure to show after the page is redrawn
+KEY_SHOWN = "investigator_cases_shown"  # how many past cases the sidebar box shows
+CASES_STEP = 3  # the box shows the newest three, then three more per click
+# The past-cases box: a soft shadow, an arrow-only button, and new cards that slide open instead of
+# appearing at once. Styled through the `st-key-<key>` class Streamlit gives each keyed element.
+# A constant written here, never log data or model output.
+CASES_STYLE = """<style>
+.st-key-past_cases {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.18);
+}
+.st-key-past_cases [class*="st-key-case_"] {
+    overflow: hidden;
+    animation: case-open 320ms ease-out both;
+}
+@keyframes case-open {
+    from { opacity: 0; max-height: 0; transform: translateY(-6px); }
+    to { opacity: 1; max-height: 160px; transform: none; }
+}
+.st-key-cases_more button, .st-key-cases_fewer button { justify-content: center; }
+.st-key-cases_more [data-testid="stIconMaterial"],
+.st-key-cases_fewer [data-testid="stIconMaterial"] { font-size: 1.9rem; }
+@media (prefers-reduced-motion: reduce) {
+    .st-key-past_cases [class*="st-key-case_"] { animation: none; }
+}
+</style>"""
 
 
 @st.cache_resource(show_spinner=False)
@@ -66,6 +99,24 @@ def new_case() -> None:
 
 def open_case(thread_id: str) -> None:
     st.session_state[KEY_CASE] = thread_id
+
+
+def show_more_cases() -> None:
+    st.session_state[KEY_SHOWN] = st.session_state.get(KEY_SHOWN, CASES_STEP) + CASES_STEP
+
+
+def show_fewer_cases() -> None:
+    st.session_state[KEY_SHOWN] = CASES_STEP
+
+
+def cases_to_show(cases: list, current: str | None) -> int:
+    """The newest three, plus three per click, and always enough to include the open case."""
+    shown = st.session_state.get(KEY_SHOWN, CASES_STEP)
+    ids = [case.thread_id for case in cases]
+    if current in ids and ids.index(current) >= shown:
+        shown = (ids.index(current) // CASES_STEP + 1) * CASES_STEP
+        st.session_state[KEY_SHOWN] = shown
+    return shown
 
 
 def ask_starter(question: str) -> None:
@@ -138,6 +189,11 @@ def show_turn(turn: investigator.Turn, case_id: str, reports: int) -> None:
             show_tools(turn)
 
 
+def fail(what: str) -> None:
+    """Keep the failure for the redraw that follows, so the input is never left locked."""
+    st.session_state[KEY_ERROR] = what
+
+
 def show_error(what: str) -> None:
     # The exception's text is not shown: it can be long, and it comes from outside the app.
     st.error(f"{what} The model could not be reached or returned an error. Try again.",
@@ -146,8 +202,8 @@ def show_error(what: str) -> None:
 
 # --- Running a question or the report ------------------------------------------------------------
 
-def ask(agent, question: str) -> bool:
-    """Ask a question and stream the answer. Returns False if it failed."""
+def ask(agent, question: str) -> None:
+    """Ask a question and stream the answer. A failure is kept for the redraw."""
     if st.session_state.get(KEY_CASE) is None:
         st.session_state[KEY_CASE] = investigations.start(
             question, investigations.MEMORY_PATH).thread_id
@@ -159,19 +215,16 @@ def ask(agent, question: str) -> bool:
         try:
             for piece in investigator.ask(agent, st.session_state[KEY_CASE], question):
                 if piece.kind == "tool":
-                    name = piece.value if piece.value in TOOL_NAMES else "a tool"
-                    status.caption(f"Running {name}…")
+                    status.caption(PROGRESS.get(piece.value, "Using a tool…"))
                 else:
                     text += piece.value
                     body.text(investigator.as_plain_text(text))
         except Exception:
             status.empty()
-            show_error("The agent stopped before it finished.")
-            return False
-    return True
+            fail("The agent stopped before it finished.")
 
 
-def write_report(agent, model, request: str) -> bool:
+def write_report(agent, model, request: str) -> None:
     with st.chat_message("user"):
         st.text(request)
     with st.chat_message("assistant"):
@@ -179,9 +232,7 @@ def write_report(agent, model, request: str) -> bool:
             with st.spinner("Writing the incident report…"):
                 investigator.write_report(agent, model, st.session_state[KEY_CASE], request)
         except Exception:
-            show_error("The report could not be written.")
-            return False
-    return True
+            fail("The report could not be written.")
 
 
 # --- The page ------------------------------------------------------------------------------------
@@ -203,12 +254,25 @@ with st.sidebar:
     st.subheader("Past investigations")
     if not cases:
         st.caption("None yet. Ask a question to start one.")
-    for case in cases:
-        st.button(
-            f"{literal(case.first_question)}  \n{case.started_at:%d %b %Y, %H:%M} UTC",
-            key=f"case_{case.thread_id}", on_click=open_case, args=(case.thread_id,),
-            width="stretch", type="primary" if case.thread_id == current else "secondary",
-        )
+    else:
+        # One box: the newest cases, and an arrow on its bottom edge that shows three more.
+        shown = cases_to_show(cases, current)
+        st.html(CASES_STYLE)
+        with st.container(border=True, key="past_cases"):
+            for case in cases[:shown]:
+                st.button(
+                    f"{literal(case.first_question)}  \n{case.started_at:%d %b %Y, %H:%M} UTC",
+                    key=f"case_{case.thread_id}", on_click=open_case, args=(case.thread_id,),
+                    width="stretch", type="primary" if case.thread_id == current else "secondary",
+                )
+            hidden = len(cases) - shown
+            if hidden > 0:
+                st.button("", key="cases_more", icon=":material/expand_more:", type="tertiary",
+                          help=f"Show {min(hidden, CASES_STEP)} more", width="stretch",
+                          on_click=show_more_cases)
+            elif len(cases) > CASES_STEP:
+                st.button("", key="cases_fewer", icon=":material/expand_less:", type="tertiary",
+                          help="Show fewer", width="stretch", on_click=show_fewer_cases)
 
 past = investigator.history(agent, current) if current else []
 reports = 0
@@ -216,30 +280,43 @@ for turn in past:
     reports += turn.report is not None
     show_turn(turn, current, reports)
 
-question = st.chat_input("Ask about the sign-in log")
+# Locked while an answer is written: a message sent mid-answer would cut the answer off (B-025).
+# submit_mode covers typed questions; `disabled` covers the starter and report buttons.
+busy = KEY_ASK in st.session_state or KEY_REPORT in st.session_state
+question = st.chat_input("Ask about the sign-in log", submit_mode="disable", disabled=busy)
 question = question or st.session_state.pop(KEY_ASK, None)
 wants_report = st.session_state.pop(KEY_REPORT, None)
 # Offered only when it would add something: not twice in a row, and as an update after new answers.
 report_offer = investigator.report_request(past)
 
+# The answer being written, then the starters or the report button. A container, so the AI note
+# below stays last, just above the input.
+live = st.container()
+st.caption(AI_NOTE)
+
 # The starters or the report button. Cleared before an answer streams, or the previous run's
 # buttons would stay on screen, greyed out, until the answer finished.
-footer = st.empty()
-if question:
-    footer.empty()
-    if ask(agent, question):
-        st.rerun()  # redraw from memory, with the tool calls under the answer
-elif wants_report and current and wants_report == report_offer:
-    footer.empty()
-    if write_report(agent, model, wants_report):
+with live:
+    if failure := st.session_state.pop(KEY_ERROR, None):
+        show_error(failure)
+    footer = st.empty()
+    if question:
+        footer.empty()
+        ask(agent, question)
+        st.rerun()  # redraw from memory, with the tool calls under the answer, and unlock the input
+    elif wants_report and current and wants_report == report_offer:
+        footer.empty()
+        write_report(agent, model, wants_report)
         st.rerun()
-elif not past:
-    with footer.container():
-        st.caption("Ask a question below, or start with one of these:")
-        for starter in STARTERS:
-            st.button(starter, on_click=ask_starter, args=(starter,), icon=":material/search:")
-elif report_offer:
-    with footer.container():
-        st.button(report_offer, icon=":material/description:", on_click=ask_for_report,
-                  args=(report_offer,),
-                  help=f"Sends \"{report_offer}\" and shows the report as a card.")
+    elif not past:
+        with footer.container():
+            st.markdown(SCOPE)
+            st.caption("Ask a question below, or start with one of these:")
+            for starter in STARTERS:
+                st.button(starter, on_click=ask_starter, args=(starter,),
+                          icon=":material/search:")
+    elif report_offer:
+        with footer.container():
+            st.button(report_offer, icon=":material/description:", on_click=ask_for_report,
+                      args=(report_offer,),
+                      help=f"Sends \"{report_offer}\" and shows the report as a card.")

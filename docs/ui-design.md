@@ -10,7 +10,10 @@ The screen list and the filter scope are recorded in the PRD decisions log.
 - **Filters, in the sidebar:** date range, outcome, country and user. They apply the same way to
   Overview, Alerts and Log explorer. The Investigator is not filtered.
 - **Empty results:** a clear message, never a blank chart or an error.
-- **Units:** every number says what it counts.
+- **Width:** the whole app, sidebar included, is at most 1700 px wide and centered, with a faint
+  line on each edge, so wide screens show gaps on both sides. Inside it, the content is at most
+  1400 px wide (860 px on the Investigator).
+- **Units:** every number says what it counts. On metric tiles this is the label's job; the value is the bare number.
 
 ## Overview
 
@@ -63,9 +66,10 @@ filtered: the agent chooses its own time windows.
 | Part | Content |
 | --- | --- |
 | Header | "Synthetic data" and "Today = 8 Oct 2026, the log's capture date" |
-| Sidebar | Replaces the filters: a "New investigation" button and the list of past investigations (first question and start time); clicking one reopens it |
+| Sidebar | Replaces the filters: a "New investigation" button and the list of past investigations (first question and start time); clicking one reopens it. The list is one box showing the newest three; a centered arrow (no text, a tooltip says what it does) at its bottom shows three more per click, then folds back. New cards slide open; the box has a soft shadow. The open case is always shown (UI polish, 10 Oct) |
 | Starter questions | Shown in an empty case, such as "Anything suspicious last night?"; one click asks it |
-| Chat | The analyst's questions and the agent's answers |
+| Scope line | Shown in an empty case, above the starters: what the agent can do, and that it cannot block, change or delete anything (UI polish, 10 Oct) |
+| Chat | The analyst's questions and the agent's answers, in a column about 860 px wide for easier reading. While the agent answers, the input is locked and a progress line says in plain words what it is doing. A short note by the input says the answers are AI-generated and should be checked against the tool calls (UI polish, 10 Oct) |
 | Tools used | Under each answer, a collapsible list of the tools called. Each call shows a plain "Asked" line and a "Found" line written by code from the tool's result, its log rows in a table, and the raw JSON behind a "Show raw data" switch (author's choice, 9 Oct: the raw JSON alone read like code to an end user) |
 | Incident report | A **button plus chat** (author's choice, 9 Oct): the button sends "Write the incident report" into the chat. The report is shown as a card with the fixed fields: title, severity, summary, attacker IPs, affected users, timeline, evidence, next steps. A "Download PDF" button under the card saves the same fields as a plain-text PDF (author's choice, 9 Oct). The PDF has a fixed header with the classification "TLP:CLEAR · Educational use · Synthetic data" and a footer with an AI-generated warning and page numbers (author's choice, 10 Oct). The report button shows only when a report would add something new: not right after a report, and as "Update the incident report" once a new question has been answered (author's choice, 9 Oct) |
 
