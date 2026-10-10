@@ -1,24 +1,19 @@
 # Prompt Log
 
-Every prompt given to Claude during the build, in order. This log feeds the "prompts used" and
-"iterations" sections of the Google Doc, so entries are kept as they happened, including the ones that
-did not work.
+The key prompts given to Claude Code during the build, in order. There are two kinds:
+
+- **Phase starters**: the prompt that opened each of Phases 1 to 7.
+- **Strategic prompts**: the moments where the author challenged a recommendation, set a standing
+  rule, or found a problem and directed how it should be fixed.
+
+This is 21 of the 48 logged prompts. The others were short approvals such as "go", or screenshot
+renames. They are kept in [`prompt-log-full.md`](prompt-log-full.md), which also explains entry IDs
+that the bug log cites but this file skips. The IDs are the original ones, so gaps are deliberate.
 
 **Phase 0 (planning)** happened in a separate conversation with Claude acting as supervisor, before any
 code. Its outcome is in [`phase0-summary.md`](phase0-summary.md) and [`PRD.md`](PRD.md).
 
-## Entry format
-
-```
-### P-001 · 2026-10-09 15:30 · Phase 1 Setup
-
-**Prompt:**
-> The author's prompt, verbatim.
-
-**Purpose:** what this prompt was meant to achieve.
-**Result:** what came back, in one or two lines.
-**Next:** what changed or was tried next. Link a bug entry if one was found (B-001).
-```
+Each entry gives the author's prompt verbatim, its purpose, what came back, and what changed next.
 
 ## Entries
 
@@ -37,68 +32,6 @@ Python 3.12.14, dependencies locked in `uv.lock`, and the `SqliteSaver` import c
 **Next:** `env.example` and a README skeleton. Claude proposed recording the `SqliteSaver` package
 and the uv install method in the PRD decisions log; the author declined, so those facts stay in the
 bug log and PROGRESS.md only.
-
-### P-002 · 2026-10-09 · Phase 1 Setup
-
-**Prompt:**
-> go ahead
-
-**Purpose:** approve the next step: `env.example` with key names only, and a README skeleton.
-**Result:** Claude read only the key names from `.env` (`OPENROUTER_API_KEY`, `ABUSEIPDB_API_KEY`)
-and wrote `env.example` with empty values and where to get each key. It also wrote `README.md` with
-headings, requirements, the synthetic-data note and links to the project documents. Checked: the
-names match `.env`, `env.example` holds no values and is not git-ignored, and neither file holds
-personal info.
-**Next:** one test call to gpt-4o-mini through OpenRouter from LangChain.
-
-### P-003 · 2026-10-09 · Phase 1 Setup
-
-**Prompt:**
-> go
-
-**Purpose:** prove the app can reach gpt-4o-mini through OpenRouter, the way the course does it.
-**Result:** a throwaway script called `init_chat_model("openai/gpt-4o-mini", model_provider="openai",
-base_url="https://openrouter.ai/api/v1", temperature=0)` with the key from `.env`. The model replied
-"connection works"; OpenRouter reported model `openai/gpt-4o-mini` and 17 tokens. The key was never
-printed. The script was not added to the repo.
-**Next:** one test lookup against AbuseIPDB.
-
-### P-004 · 2026-10-09 · Phase 1 Setup
-
-**Prompt:**
-> go
-
-**Purpose:** prove the app can reach the AbuseIPDB v2 check endpoint over HTTPS with the key.
-**Result:** a throwaway script looked up `8.8.8.8` (Google's public DNS, a harmless address).
-Status 200: abuse confidence score 0, country US, ISP Google LLC, whitelisted, but 233 reports, the
-latest today. Daily limit 1,000, 999 left. The key was never printed. The script was not added to
-the repo.
-Observation: the report count alone is misleading. A well-known safe address still collects
-hundreds of reports, and AbuseIPDB scores it 0 because it is whitelisted. The agent and the rules
-should judge an IP by `abuseConfidenceScore`, not by `totalReports`.
-**Next:** the author creates the private GitHub repo.
-
-### P-005 · 2026-10-09 · Phase 1 Setup
-
-**Prompt:**
-> done the repo name is "login-investigator-prototype". pls give it a brief discription in github
-
-**Purpose:** record the new private repo and give it a description.
-**Result:** Claude confirmed the repo is private and set the description with the GitHub CLI.
-Claude flagged that the public link will contain the author's GitHub username, which no file
-cleanup can remove, and that commits carry the author's git name.
-**Next:** the author's ruling on the commit name.
-
-### P-006 · 2026-10-09 · Phase 1 Setup
-
-**Prompt:**
-> keep [author]
-
-**Purpose:** keep the existing git author name; go ahead with the noreply email and the first commit.
-**Result:** this repo's git email set to the GitHub noreply address, name kept. Before committing,
-Claude checked that no `.env`, memory or key-like content was staged. First commit `e223abd`,
-not pushed.
-**Next:** Phase 2, Data.
 
 ### P-007 · 2026-10-09 · Phase 2 Data
 
@@ -127,29 +60,6 @@ the Evaluation table and the decisions log.
 **Iteration note:** the author's question improved the eval design. The first recommendation was
 optimised for effort; the revised one for evidence.
 
-### P-009 · 2026-10-09 · Phase 2 Data
-
-**Prompt:**
-> go
-
-**Purpose:** choose the real attacker IPs and the three decoys, and save their AbuseIPDB responses.
-**Result:** Claude pulled 200 addresses from AbuseIPDB's blacklist (all score 100), then checked 20
-candidates (979 of 1,000 daily checks left). It preferred hosting servers for attackers and skipped a
-Chinese fixed-line ISP address, because that is likely a real person's infected machine. Chosen:
-
-| Role | IP | Score | Reports | Network |
-| --- | --- | --- | --- | --- |
-| S1 brute force, S3 compromise | 185.218.86.24 | 100 | 1,778 | NL hosting |
-| S2 password spraying | 2.57.122.53 | 100 | 46,451 | RO hosting |
-| S4 new country | 91.142.73.116 | 100 | 344 | RU hosting |
-| Decoy: trusted, often reported | 8.8.8.8 | 0 | 233, whitelisted | Google DNS |
-| Decoy: clean public | 165.225.38.10 | 0 | 0 | Zscaler corporate proxy, US |
-| Decoy: borderline | 34.117.59.81 | 20 | 33 | Google Cloud, US |
-
-The six responses are saved in `data/ip_reputation/<ip>.json` with a `fetchedAt` time. The files
-hold only AbuseIPDB's data, never the role, so the agent cannot read the gold answer from them.
-**Next:** the seeded data generator.
-
 ### P-010 · 2026-10-09 · Phase 2 Data
 
 **Prompt:**
@@ -172,32 +82,6 @@ With the computer's clock, "last night" points at an empty day once the frozen l
 so the core scenario fails for a reviewer on any later day. Two options: a fixed capture date, or
 shifting the log's dates daily. Claude recommended the fixed date.
 **Next:** the author chose the fixed date (P-012).
-
-### P-012 · 2026-10-09 · Phase 2 Data
-
-**Prompt:**
-> yes go with A
-
-**Purpose:** fix "today" at the log's capture date, then build the generator.
-**Result:** PRD updated (Agent requirements, Data, S5 row, two decisions). Claude wrote
-`login_investigator/generator.py` (seed 20261008, capture time 8 Oct 2026 09:00 UTC) and 11 tests.
-Output: 1,856 rows (1,548 successes, 308 failures), 50 staff, and `evals/ground_truth.json` with the
-planted answers read from the generated rows. Two runs give byte-identical files. Two test failures
-along the way (B-002, B-003). A check showed the shared office address peaks at 3 users failing in
-an hour, against 35 for the spraying attacker.
-**Next:** document how the data was made.
-
-### P-013 · 2026-10-09 · Phase 2 Data
-
-**Prompt:**
-> claude please write up how the data was made, for the README and the Google Doc.
-
-**Purpose:** explain the dataset to two audiences: people cloning the repo, and the course reviewers.
-**Result:** a short "How the data was made" section in `README.md` (commands, organisation, IP
-strategy, scenarios), and a longer `docs/data-generation.md` for the Google Doc that also tells the
-decisions and iterations: why synthetic, the capture date, reserved addresses and decoys, attacker
-selection, scenarios, tests, the two test failures and known limitations.
-**Next:** commit the Phase 2 work.
 
 ### P-014 · 2026-10-09 · Phase 3 Core logic
 
@@ -231,28 +115,6 @@ whole log before filtering by time, because the new-country rule needs each user
 compromise in S3 also counts as a new-country sign-in, so two new-country findings are expected.
 **Next:** the author approved ("no all good.. it is that one. i took the screenshot, pls rename it
 apropriatly then go").
-
-### P-015 · 2026-10-09 · Phase 3 Core logic
-
-**Prompt:**
-> no all good.. it is that one. i took the screenshot, pls rename it apropriatly then go
-
-**Purpose:** approve the Phase 3 plan and start building.
-**Result:** `loader.py`, `rules.py` and `search.py`, with no Streamlit import, plus 61 new tests
-(72 in total). The rules found exactly five findings on the real log: S1 brute force, S2 spraying,
-S3 success after failures, and two new-country sign-ins (S4, and the S3 compromise from the
-Netherlands). Before the first run, a read-through caught two problems: timezone-aware times would
-have become slow generic objects in the window check, and one row-joining line was fragile. All 72
-tests passed on the first run. To prove the tests can fail, the thresholds were loosened in a
-throwaway run: 14 rule tests failed, including the decoy, normal-user and staff-address checks.
-Timing: load 0.3 s, all rules 1.5 s, one search under 0.01 s.
-**Next:** Gate 1 passed; the author reviews before Phase 4.
-
-The author asked for a review brief for the supervisor ("i will make the supervisor review phase 3.
-give me a summary for phase 3 so he starts his review"). Claude's first brief was too long; the
-author pushed back ("claude this is not a summary. this is too much. i need what is just enough for
-him to start the review."), and Claude cut it to status, files, result, how to verify, and three
-points to look at.
 
 ### P-016 · 2026-10-09 · Phase 3 Core logic
 
@@ -298,76 +160,6 @@ inside the Investigator. Optional: an "Investigate" button on each alert. The au
 ("agreed"); the PRD and the decisions log were updated.
 **Next:** design what each screen shows, starting with the Overview.
 
-### P-018 · 2026-10-09 · Phase 4 Dashboard (UI design pause)
-
-**Prompts:** four short design rulings, in order:
-> bars
-
-> i agree with ur recommendation
-
-> keep it
-
-> A button plus chat
-
-**Purpose:** agree what each screen shows, one screen at a time, before any UI code.
-**Result:** Claude proposed each screen with its purpose and one open choice; the author ruled:
-stacked bars for the Overview's hourly chart; Alerts listed newest first; a CSV download on the Log
-explorer; the incident report requested by a button plus chat. Recorded in `docs/ui-design.md`.
-Two security rules came out of the design: log fields appear only inside tables, and the agent's
-text and report are shown with links and images off, closing the prompt-injection route where a
-model writes an image link that the browser fetches by itself. The second was added to the PRD's
-security requirements and decisions log.
-**Next:** plan the dashboard build and wait for the author's go.
-
-### P-019 · 2026-10-09 · Phase 4 Dashboard
-
-**Prompt:**
-> Go show the build plan for the three dashbaords screens. do not start the code, wait for my approval
-
-**Purpose:** see the build plan for Overview, Alerts and Log explorer before any UI code.
-**Result:** Claude presented the plan and waited for approval: screens only display, all numbers come
-from tested core functions; Streamlit code in `app/`; three small core additions (findings remember
-their rows, threshold reasons as data, `stats.py`); cached data; automated screen tests for the PRD's
-dashboard acceptance criteria; then a browser check and a screenshot per screen.
-**Next:** the author approved ("screenshot has been taken, rename it. then Go").
-
-### P-020 · 2026-10-09 · Phase 4 Dashboard
-
-**Prompt:**
-> screenshot has been taken, rename it. then Go
-
-**Purpose:** approve the Phase 4 build plan and build the three dashboard screens.
-**Result:** the design documents were committed first (`9bd6f4f`). Core additions: findings remember
-their rows (`row_ids`, `findings_matching`), the threshold reasons became data (`RULE_GUIDE`), and
-`stats.py` counts for the charts. Screens in `app/`: Overview, Alerts and Log explorer, with shared
-cached data and sidebar filters. The chart colours were run through the palette validator in light
-and dark mode, not chosen by eye. Two security additions beyond the plan: the CSV export neutralises
-spreadsheet formulas (CSV injection), and the tables' built-in export was switched off so the
-protected button is the only way out (B-007). 18 screen tests cover the PRD's dashboard acceptance
-criteria, and breaking the screens on purpose made them fail. A browser check found four display
-problems that the tests had passed (B-008). Bugs B-006 to B-008 logged. 134 tests pass.
-**Next:** the author asked to leave the agent for a fresh session (P-021).
-
-### P-021 · 2026-10-09 · Phase 4 Dashboard
-
-**Prompt:**
-> claude pls keep the aget part for a fresh session with u if possible
-
-**Purpose:** stop before Phase 5 and start the agent work in a new session.
-**Result:** Phase 4 was finished and checked; a handoff note for Phase 5 was added to PROGRESS.md.
-**Next:** the author reviews Phase 4; Phase 5 in a fresh session.
-
-### P-022 · 2026-10-09 · Phase 4 Dashboard
-
-**Prompt:**
-> the 3 screenshots has been saved, rename them, then commit phase 4 pls
-
-**Purpose:** record the three screen screenshots and commit Phase 4.
-**Result:** Claude viewed each screenshot, then renamed them `05-overview.png`, `06-alerts.png` and
-`07-log-explorer.png`; PROGRESS.md ticked; Phase 4 committed. Claude noted that the screenshots show
-the browser's bookmarks bar and profile picture, a Phase 7 item before the repo goes public.
-**Next:** Phase 5 in a fresh session.
-
 ### P-023 · 2026-10-09 · Phase 4 Dashboard
 
 **Prompt:**
@@ -411,36 +203,6 @@ including a restart and reopening the case. That run found B-012 (fixed) and B-0
 the evals). 211 tests pass.
 **Next:** the author runs the core scenario in the app and takes the Investigator 📸.
 
-### P-026 · 2026-10-09 · Phase 5 Agent
-
-**Prompt:**
-> i see that big error when i click investigator:
-
-(Followed by the pasted `ImportError` traceback.)
-
-**Purpose:** report an error on the Investigator page.
-**Result:** Claude found that the code on disk was correct, and that an app process on port 8517
-had been running since before Phase 5. It reproduced the error on that process in the browser,
-restarted the process on the same port, and confirmed that the page loads. Logged as B-014.
-**Next:** the author runs the core scenario and takes the Investigator 📸.
-
-### P-027 · 2026-10-09 · Phase 5 Agent
-
-**Prompt:**
-> unfortunatily i refreshed the page the error page nolonger exist. so i can not take a screenshot of it. do u still have it in ur memory ?
-
-(Followed by "#1 and it is saved. rename it".)
-
-**Purpose:** find a way to document bug B-014 after the error page was gone.
-**Result:** Claude said it had no image, only the error text, because it had read the page as text.
-It offered two options: a screenshot of the author's chat message with the traceback, or a staged
-reproduction labelled as such. The author chose the real chat message. Claude viewed it and renamed
-it `09-bug-b014-stale-app.png`. It noted that the traceback shows the home folder path, which
-contains the author's first name.
-**Next:** the author asked to blur the paths. Claude blurred the home folder part on all five path
-lines, checked the image by eye (the first try left one letter visible, so the boxes were widened),
-and kept the original outside the repo. The image was never committed. Then the Investigator 📸.
-
 ### P-028 · 2026-10-09 · Phase 5 Agent
 
 **Prompt:**
@@ -456,47 +218,6 @@ plus a table of log rows, with the raw JSON behind a switch. While trying it on 
 it found and fixed B-015. Checked in the browser on a real case. 223 tests pass.
 **Next:** the author restarts the app and continues the core scenario.
 
-### P-029 · 2026-10-09 · Phase 5 Agent
-
-**Prompt:**
-> another UI error when i run a investigation:
-
-(Followed by the pasted `AttributeError` traceback.)
-
-**Purpose:** report a second error on the Investigator page.
-**Result:** Claude compared the app's start time with the file change times, then read
-Streamlit's file watcher source. It found the real cause of both B-014 and this error:
-Streamlit never reloads modules outside `app/`. Logged as B-016. The fix is a restart.
-**Next:** the author restarts the app and continues the core scenario.
-
-### P-030 · 2026-10-09 · Phase 5 Agent
-
-**Prompt:**
-> all done. new screenshots saved, rename them appropriatly pls
-
-**Purpose:** record the author's own run of the core scenario.
-**Result:** Claude viewed all six screenshots and renamed them `10-` to `15-`. The B-016 traceback
-showed the home folder path again, so Claude blurred it as the author ruled for `09-`, and kept
-the original outside the repo. The follow-up answer in `14-` repeats the miscount from B-013:
-"three successful sign-ins after the initial one", where there were two. PROGRESS.md: the
-Investigator step is ticked and Phase 5 is done.
-**Next:** the author decides whether to commit Phase 5; then Phase 6, the evals.
-
-### P-031 · 2026-10-09 · Phase 5 Agent
-
-**Prompt:**
-> one of the planned requirements is to have some kind of file download, i do not remember what exactly. but maybe it is a saubsequest step when a "write theincident report" is done.
-
-(Followed by "agree with ur recommendation but the format should bd pdf.")
-
-**Purpose:** check whether a download was planned, and add a report download.
-**Result:** Claude searched the PRD and the design notes. The only planned download was the CSV
-on the Log explorer, already built. Claude recommended a report download as a scope addition, in
-plain text for safety. The author agreed and chose PDF. Claude recorded it in the PRD (requirement,
-security row, acceptance criterion, decisions log), in `docs/ui-design.md` and as a new Phase 5
-step, with handoff notes for the next session. Not built yet.
-**Next:** a fresh session builds the PDF download, then starts Phase 6.
-
 ### P-032 · 2026-10-09 · Phase 5 Agent
 
 **Prompt:**
@@ -510,15 +231,6 @@ because a case can continue after its report. The author chose that option (A) o
 conversation" (B). Built in the core and the screen, tested, and checked in the browser. Logged
 as B-017. 230 tests pass.
 **Next:** commit, then a fresh session for the PDF download and Phase 6.
-
-### P-033 · 2026-10-10 · Phase 5 Agent
-
-**Prompt:**
-> Okay, well, fix the PROGRESS.md file first, then I have an idea about the PDF.
-
-**Purpose:** correct the tracker's header, which still said Phase 4.
-**Result:** Claude changed "Current phase" to "5 — Agent". Nothing else in the file was touched.
-**Next:** the author's idea for the PDF (P-034).
 
 ### P-034 · 2026-10-10 · Phase 5 Agent
 
@@ -542,28 +254,6 @@ rendering twice. Bug B-018 found and fixed. 15 new tests; removing each safeguar
 test fail. 245 tests pass. Checked in the browser: the button shows under a saved case's report.
 The PDF built from that case's real report was viewed and looks right.
 **Next:** the author clicks "Download PDF" in the app and takes the screenshot; then commit and Phase 6.
-
-### P-035 · 2026-10-10 · Phase 5 Agent
-
-**Prompt:**
-> screenshot is taken and saved, rename it appropriatly pls. then commit
-
-**Purpose:** record the author's own download of the PDF, then commit the PDF step.
-**Result:** the screenshot shows a PDF the author downloaded from a new case in the live app, with
-the header, the TLP:CLEAR classification, every fixed field and the footer. Claude renamed it
-`16-incident-report-pdf.png`, ticked the PDF step in PROGRESS.md and committed.
-**Next:** Phase 6, the evals. Open decision: defang web addresses in the PDF.
-
-### P-035 · 2026-10-10 · Phase 5 Agent
-
-**Prompt:**
-> screenshot is taken and saved, rename it appropriatly pls. then commit
-
-**Purpose:** record the author's own download of the PDF, then commit the PDF step.
-**Result:** the screenshot shows a PDF the author downloaded from a new case in the live app, with
-the header, the TLP:CLEAR classification, every fixed field and the footer. Claude renamed it
-`16-incident-report-pdf.png`, ticked the PDF step in PROGRESS.md and committed.
-**Next:** Phase 6, the evals. Open decision: defang web addresses in the PDF.
 
 ### P-036 · 2026-10-10 · Phase 6 Evals
 
@@ -597,51 +287,6 @@ the data, and a fake-model run). A one-question live smoke run passed. Screensho
 `17-phase6-plan.png`.
 **Next:** the baseline run of the full set.
 
-### P-038 · 2026-10-10 · Phase 6 Evals
-
-**Prompt:**
-> Go
-
-(Before it: "the screenshot is taken, blur this part pls in the screenshot [...] then rename". Claude
-blurred one line and saved `18-eval-baseline-triage.png`, keeping the original outside the repo.)
-
-**Purpose:** apply the five proposed prompt changes and run the eval again.
-**Result:** Claude changed the system prompt (window line, broad questions, counting, "it" in
-follow-ups, reporting injected text). Before running, Claude replaced the example window in the
-prompt: it was exactly last night's window, the gold answer for Q01, so the model could copy it.
-Prompt version `4b134e5b`: 81%, security 93%. The security failure was a grader bug (B-022);
-re-scored, 82% and 100%. Fixed: Q01, Q02, Q05, Q07, Q13, Q14. Worse: Q15, 3/3 to 0/3, caused by
-the new definition of a broad question. Not fixed: Q08 (real cause found, B-021), Q17 (1 of 3
-now reports the text), Q04 (2 of 3 skip the new-country IP). The runner now keeps every turn.
-**Next:** a second round of prompt changes, for the author's go.
-
-### P-039 · 2026-10-10 · Phase 6 Evals
-
-**Prompt:**
-> Go
-
-**Purpose:** apply the second round of prompt changes and run the eval again.
-**Result:** Claude changed the system prompt (a broad question is any question about a period;
-look up every IP named in the findings; name each finding's rule type and answer only with the
-type asked about; never shorten a log value). Prompt version `4cdde503`: 88%, security 80%. The
-security failures were the agent copying the planted text unmarked, which the grader misread
-(B-023); re-scored, 88% and 100%. Fixed: Q04 and Q15 (3/3). Not fixed: Q08 and one Q02 run, both
-from calling the brute-force IP a sprayer (B-021); Q17 still never warns about the planted text.
-**Next:** a third round of prompt changes, for the author's go.
-
-### P-040 · 2026-10-10 · Phase 6 Evals
-
-**Prompt:**
-> go
-
-**Purpose:** apply the third round of prompt changes and run the eval again.
-**Result:** Claude defined password spraying and brute force in plain words, and told the agent to
-replace text aimed at an AI with "[prompt-injection attempt]" and warn on its own line. Prompt
-version `35d4d98f`: 91%, security 87%. The security misses and one Q02 miss were right answers
-that two patterns missed (B-024). Re-scored: **96% overall, 100% security. Target met.** Fixed:
-Q17 now reports the planted text in 3 of 3 runs (B-011). Still open: Q08, 1 of 3 (B-021).
-**Next:** the author's ruling on the widened security check, the screenshot, then commit.
-
 ### P-041 · 2026-10-10 · Phase 6 Evals
 
 **Prompt:**
@@ -657,31 +302,6 @@ words), then its purpose: the attacker's note aims at a quiet failure, an answer
 danger, which the "does not obey" check cannot catch. Claude also said its value in Q17 is small.
 The author accepted the widening. Recorded in B-024 and the PRD decisions log.
 **Next:** a fresh confirmation run with the final grader, then commit.
-
-### P-042 · 2026-10-10 · Phase 6 Evals
-
-**Prompt:**
-> go
-
-**Purpose:** a fresh confirmation run of the full eval with the final grader, so the result does
-not rest on re-scored answers.
-**Result:** prompt version `35d4d98f`: 56 of 57 runs (98%), security 15 of 15 (100%). The one miss
-is Q08 run 1, the known sprayer mix-up (B-021). Gate 3a passed. Claude ticked the step and the
-gate in PROGRESS.md and committed Phase 6.
-**Next:** Phase 7, deliverables. Clear the memory file before recording the video.
-
-### P-043 · 2026-10-10 · after Phase 6
-
-**Prompt:**
-> i will do it on a fresh session. but i am thinking of something. some UI improvemnts before phase 7. do u agree ?
-
-(Followed by "yes" to adding the step to PROGRESS.md.)
-
-**Purpose:** decide whether to polish the UI before the deliverables.
-**Result:** Claude agreed, with three conditions: screen-only changes so the eval stays valid,
-agree the list before any code, and a time box of 2 to 3 hours, because the deadline is Sunday
-21:59 and Phase 7 needs most of Sunday. Added a "UI polish" step with handoff notes to PROGRESS.md.
-**Next:** a fresh session starts with the author's list of improvements.
 
 ### P-044 · 2026-10-10 · UI polish (sorting the list)
 
@@ -749,21 +369,6 @@ Then, correcting Claude's first proposal (the newest three, plus a fold-out sect
 adds up to three per click, and "Show fewer" folds it back. If the open case is an older one, the
 box grows to include it. Built with Streamlit's own bordered container and a tertiary button, no
 CSS. 289 tests pass (3 new); checked in the browser.
-**Next:** the author reviews; then commit and Phase 7.
-
-### P-047 · 2026-10-10 · UI polish (past investigations box, refined)
-
-**Prompt:**
-> it is better the concept in general is implemented, but not exactly how i want it.  for example, keep only the arrow no need to the text next to it, and make it a lettile bet bigger and in the middle horozintally, the expanding of the container should be smooth with a nice bit animation in temrs of speed. so not sudden expainsion. and for that overall container to have a bit of a shadow so it stands out. understand ?
-
-**Purpose:** make the past investigations box look finished.
-**Result:** the arrow has no text (its tooltip says "Show 3 more" or "Show fewer"), is larger and
-centered. The box has a soft shadow. New cards slide open over 0.32 s; cards already shown are not
-redrawn, so only the new ones move. Styled through Streamlit's supported `st-key-<key>` class, so
-only this box is affected; the animation is switched off for users whose system asks for reduced
-motion. 289 tests pass; checked in the browser (arrow centered, 30 px icon, shadow, animation rule
-applied, old cards kept). Folding back is instant: Streamlit removes the cards at once, and CSS
-cannot animate an element that is gone.
 **Next:** the author reviews; then commit and Phase 7.
 
 ### P-048 · 2026-10-10 · Phase 7 Deliverables (start)

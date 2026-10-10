@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
 **Current phase:** 7 — Deliverables and submission
-**Current step:** Phase 7, first step: the prompt that starts the phase, and Claude's plan. Read the handoff notes above Phase 7
+**Current step:** Phase 7: personal info dry run shown to the author; then trim the prompt log, video and Google Doc
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -215,9 +215,9 @@ The author asked for some UI improvements before the video. Agreed conditions:
 ## Phase 7 — Deliverables and submission
 
 - [x] ~~📸 Process: the prompt that starts this phase, and Claude's plan~~ (`screenshots/20-phase7-plan.png`)
-- [ ] Every acceptance criterion in the PRD ticked with evidence
-- [ ] README complete; the app starts from a fresh clone
-- [ ] Scan the repo history for secrets
+- [x] ~~Every acceptance criterion in the PRD ticked with evidence~~ (`docs/PRD.md`, 18 of 18; new `tests/test_core_boundary.py` for the no-Streamlit rule, seen failing when broken)
+- [x] ~~README complete; the app starts from a fresh clone~~ (fresh clone 10 Oct: `uv sync`, 289 tests pass with no keys; with empty keys the dashboard loads and the Investigator shows a clean "key not set" message; with the key, one live question answered with 3 tool calls)
+- [x] ~~Scan the repo history for secrets~~ (every git object, 10 Oct: neither `.env` value, nor its first 12 characters, nor any key pattern found; the one `SECRET =` is a test fixture)
 - [ ] Google Doc: Phase 0 summary, build breakdown, prompts, iterations, bugs, learnings, eval results, screenshots
 - [ ] Video script, then record with Loom (5 minutes or less) and upload to Google Drive
 - [ ] 👤 The author reviews everything
