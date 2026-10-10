@@ -219,7 +219,7 @@ The author asked for some UI improvements before the video. Agreed conditions:
 - [x] ~~README complete; the app starts from a fresh clone~~ (fresh clone 10 Oct: `uv sync`, 289 tests pass with no keys; with empty keys the dashboard loads and the Investigator shows a clean "key not set" message; with the key, one live question answered with 3 tool calls)
 - [x] ~~Scan the repo history for secrets~~ (every git object, 10 Oct: neither `.env` value, nor its first 12 characters, nor any key pattern found; the one `SECRET =` is a test fixture)
 - [ ] Google Doc: Phase 0 summary, build breakdown, prompts, iterations, bugs, learnings, eval results, screenshots
-- [ ] Video script, then record with Zoom (5 minutes or less) and upload to Google Drive
+- [ ] Video script, then record with Zoom (5 minutes or less) and upload to Google Drive (script: `docs/video-script.md`; recorded 10 Oct, 10 min 10 s, kept as is: the author's ruling, PRD decisions log; upload pending)
 - [ ] 👤 The author reviews everything
 
 **Gate 3b:** The author has reviewed the repo, the doc and the video.
