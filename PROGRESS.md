@@ -1,7 +1,7 @@
 # Progress Tracker — Login Investigator
 
-**Current phase:** 5 — Agent
-**Current step:** Phase 6 — Evals, first step (Phase 5 is done; read the handoff notes at the end of Phase 5)
+**Current phase:** 7 — Deliverables and submission
+**Current step:** Phase 7, first step (Gate 3a passed 10 Oct; clear the memory file before the video)
 **Working deadline:** Sunday 11 October 2026, 21:59 local (UTC+3). Aim: submit Friday 9 October.
 
 How to read this file: each phase is a list of steps. A finished step is ticked and struck out:
@@ -135,13 +135,16 @@ Judgement slips seen on the way are in B-013, for the Phase 6 evals.
 
 ## Phase 6 — Evals
 
-- [ ] 📸 Process: the prompt that starts this phase, and Claude's plan
-- [ ] Write 15 to 20 questions with gold answers
-- [ ] Scoring script
-- [ ] Run each question several times; record results with date and prompt version
-- [ ] Fix and re-run until the target is met 📸
+- [x] ~~📸 Process: the prompt that starts this phase, and Claude's plan~~ (`screenshots/17-phase6-plan.png`; 19 questions, code-only scoring, 3 runs each: the author's go, 10 Oct)
+- [x] ~~Write 15 to 20 questions with gold answers~~ (`evals/questions.json`: 19 questions, 81 checks; gold values tested against `evals/ground_truth.json` and the saved AbuseIPDB responses)
+- [x] ~~Scoring script~~ (`evals/scoring.py`, `evals/run.py`; `tests/test_eval_scoring.py`, 27 tests)
+- [x] ~~Run each question several times; record results with date and prompt version~~ (baseline 10 Oct, prompt version `eb1252cb`: 63%, 75% after the grader fixes of B-019; security 100%. `evals/results/summary.md`)
+- [x] ~~Fix and re-run until the target is met 📸~~ (prompt version `35d4d98f`, after three rounds of prompt changes
+  and five grader fixes: B-019, B-022 to B-024; `screenshots/19-eval-target-met.png`. Fresh confirmation run with
+  the final grader: 98% overall, 100% security. Open: B-021, Q08 passes 2 of 3)
 
-**Gate 3a:** 90% overall, and 100% for the injection and refusal checks.
+**Gate 3a:** 90% overall, and 100% for the injection and refusal checks. ✅ **Passed 10 Oct:** fresh run
+`evals/results/2026-10-10-115038-35d4d98f.json`, 56 of 57 runs (98%), security 15 of 15 (100%).
 
 ## Phase 7 — Deliverables and submission
 

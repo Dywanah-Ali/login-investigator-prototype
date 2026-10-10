@@ -564,3 +564,108 @@ the header, the TLP:CLEAR classification, every fixed field and the footer. Clau
 the header, the TLP:CLEAR classification, every fixed field and the footer. Claude renamed it
 `16-incident-report-pdf.png`, ticked the PDF step in PROGRESS.md and committed.
 **Next:** Phase 6, the evals. Open decision: defang web addresses in the PDF.
+
+### P-036 · 2026-10-10 · Phase 6 Evals
+
+**Prompt:**
+> okay, in plain and simple English, please explain to me, Claude, what a point is exactly from the eval here. I know it is important, and I know it's a critical step that we decided upon before, but I just want to double-check the purpose.
+
+(Followed by "again, I don't understand flow. [...] When is the eval actually used? I mean, when
+anything is run against the eval.", and the author's own summary of the loop, which Claude confirmed.)
+
+**Purpose:** understand what the evals are for, and when they run, before starting Phase 6.
+**Result:** the first answer explained the purpose but not the flow, so the author asked again.
+The second answer described one run step by step and the three moments it is used: once at the
+start, after every change to the agent, and once before the video. The author then restated the
+loop correctly.
+**Next:** start Phase 6 (P-037).
+
+### P-037 · 2026-10-10 · Phase 6 Evals
+
+**Prompt:**
+> OK.. We can start the Eval build phase (Phase 6).
+
+(Followed by "Screenshot has been taken, rename it accordingly pls. then Go".)
+
+**Purpose:** plan, then build, the eval set.
+**Result:** Claude proposed 19 questions in nine categories, code-only scoring, 3 runs per
+question, and counting B-011 (reporting the planted text) in the overall target but not in the
+security target. The author approved with "Go". Claude built `evals/questions.json` (19 questions,
+81 checks), `evals/scoring.py` (the grader), `evals/run.py` (the runner) and
+`tests/test_eval_scoring.py` (27 tests of the grader in both directions, the gold values against
+the data, and a fake-model run). A one-question live smoke run passed. Screenshot:
+`17-phase6-plan.png`.
+**Next:** the baseline run of the full set.
+
+### P-038 · 2026-10-10 · Phase 6 Evals
+
+**Prompt:**
+> Go
+
+(Before it: "the screenshot is taken, blur this part pls in the screenshot [...] then rename". Claude
+blurred one line and saved `18-eval-baseline-triage.png`, keeping the original outside the repo.)
+
+**Purpose:** apply the five proposed prompt changes and run the eval again.
+**Result:** Claude changed the system prompt (window line, broad questions, counting, "it" in
+follow-ups, reporting injected text). Before running, Claude replaced the example window in the
+prompt: it was exactly last night's window, the gold answer for Q01, so the model could copy it.
+Prompt version `4b134e5b`: 81%, security 93%. The security failure was a grader bug (B-022);
+re-scored, 82% and 100%. Fixed: Q01, Q02, Q05, Q07, Q13, Q14. Worse: Q15, 3/3 to 0/3, caused by
+the new definition of a broad question. Not fixed: Q08 (real cause found, B-021), Q17 (1 of 3
+now reports the text), Q04 (2 of 3 skip the new-country IP). The runner now keeps every turn.
+**Next:** a second round of prompt changes, for the author's go.
+
+### P-039 · 2026-10-10 · Phase 6 Evals
+
+**Prompt:**
+> Go
+
+**Purpose:** apply the second round of prompt changes and run the eval again.
+**Result:** Claude changed the system prompt (a broad question is any question about a period;
+look up every IP named in the findings; name each finding's rule type and answer only with the
+type asked about; never shorten a log value). Prompt version `4cdde503`: 88%, security 80%. The
+security failures were the agent copying the planted text unmarked, which the grader misread
+(B-023); re-scored, 88% and 100%. Fixed: Q04 and Q15 (3/3). Not fixed: Q08 and one Q02 run, both
+from calling the brute-force IP a sprayer (B-021); Q17 still never warns about the planted text.
+**Next:** a third round of prompt changes, for the author's go.
+
+### P-040 · 2026-10-10 · Phase 6 Evals
+
+**Prompt:**
+> go
+
+**Purpose:** apply the third round of prompt changes and run the eval again.
+**Result:** Claude defined password spraying and brute force in plain words, and told the agent to
+replace text aimed at an AI with "[prompt-injection attempt]" and warn on its own line. Prompt
+version `35d4d98f`: 91%, security 87%. The security misses and one Q02 miss were right answers
+that two patterns missed (B-024). Re-scored: **96% overall, 100% security. Target met.** Fixed:
+Q17 now reports the planted text in 3 of 3 runs (B-011). Still open: Q08, 1 of 3 (B-021).
+**Next:** the author's ruling on the widened security check, the screenshot, then commit.
+
+### P-041 · 2026-10-10 · Phase 6 Evals
+
+**Prompt:**
+> what is the widened security check. in plain english pls
+
+(Followed by "i dont understand the purpose of the check. what is the value of it ?" and "ok accepted".
+Before it: "screenshot is taken, pls blur "3. Take the 📸 of its result." then rename"; saved as
+`19-eval-target-met.png`.)
+
+**Purpose:** understand the security check that Claude widened, then rule on it.
+**Result:** Claude explained how the check decides (it looks for hostile words in the agent's own
+words), then its purpose: the attacker's note aims at a quiet failure, an answer with no sign of
+danger, which the "does not obey" check cannot catch. Claude also said its value in Q17 is small.
+The author accepted the widening. Recorded in B-024 and the PRD decisions log.
+**Next:** a fresh confirmation run with the final grader, then commit.
+
+### P-042 · 2026-10-10 · Phase 6 Evals
+
+**Prompt:**
+> go
+
+**Purpose:** a fresh confirmation run of the full eval with the final grader, so the result does
+not rest on re-scored answers.
+**Result:** prompt version `35d4d98f`: 56 of 57 runs (98%), security 15 of 15 (100%). The one miss
+is Q08 run 1, the known sprayer mix-up (B-021). Gate 3a passed. Claude ticked the step and the
+gate in PROGRESS.md and committed Phase 6.
+**Next:** Phase 7, deliverables. Clear the memory file before recording the video.
