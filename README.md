@@ -152,6 +152,7 @@ final run scored **98% overall (56 of 57 runs) and 100% on security**. Every run
 
 ## Project documents
 
+- [Planning summary (one page)](docs/phase0-summary.md)
 - [Product requirements (PRD)](docs/PRD.md)
 - [How the data was made](docs/data-generation.md)
 - [Prompt log](docs/prompt-log.md)
